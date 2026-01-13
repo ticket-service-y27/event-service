@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/src/" />
-  <Folder Name="/src/Application/" />
+  <Folder Name="/src/Application/">
+    <Project Path="src/Application/EventService.Application.Models/EventService.Application.Models.csproj" />
+  </Folder>
   <Folder Name="/src/Infrastructure/" />
   <Folder Name="/src/Presentation/" />
 </Solution>

@@ -24,6 +24,6 @@ public interface IEventManagerService
         long? venueId = null);
 
     Task<bool> CanEditEventAsync(long organizerId, long eventId);
-    
+
     Task<bool> IsAdminAsync(long userId);
 }

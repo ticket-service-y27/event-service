@@ -6,7 +6,7 @@ namespace EventService.Application.Contracts.VenueManagementServices;
 public interface IVenueManagementService
 {
     Task<Venue> CreateVenueAsync(string name, string address);
-    
+
     Task<Venue> UpdateVenueAsync(Guid venueId, string? name = null, string? address = null);
 
     Task<HallScheme> AddHallSchemeAsync(

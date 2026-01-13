@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/" />
   <Folder Name="/src/Application/">
+    <Project Path="src/Application/EventService.Application.Abstractions/EventService.Application.Abstractions.csproj" />
     <Project Path="src/Application/EventService.Application.Models/EventService.Application.Models.csproj" />
   </Folder>
   <Folder Name="/src/Infrastructure/" />

@@ -2,8 +2,18 @@ using EventService.Application.Models.Events;
 
 namespace EventService.Application.Abstractions.Repositories;
 
-public interface IEventRepository : IRepository<EventEntity>
+public interface IEventRepository
 {
+    Task<EventEntity?> GetByIdAsync(long id);
+
+    Task<IReadOnlyList<EventEntity>> GetAllAsync();
+
+    Task AddAsync(EventEntity entity);
+
+    Task UpdateAsync(EventEntity entity);
+
+    Task DeleteAsync(long id);
+
     Task<IReadOnlyList<EventEntity>> GetByCategoryAsync(long categoryId);
 
     Task<IReadOnlyList<EventEntity>> GetByVenueAsync(long venueId);

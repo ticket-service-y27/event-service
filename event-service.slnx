@@ -10,4 +10,7 @@
     <Project Path="src\Infrastructure\EventService.Infrastructure.DataAccess\EventService.Infrastructure.DataAccess.csproj" />
   </Folder>
   <Folder Name="/src/Presentation/" />
+  <Folder Name="/src/test/">
+    <Project Path="src/test/EventService/EventService.csproj" />
+  </Folder>
 </Solution>

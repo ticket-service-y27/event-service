@@ -7,15 +7,15 @@ public interface IVenueManagementService
 {
     Task<Venue> CreateVenueAsync(string name, string address);
 
-    Task<Venue> UpdateVenueAsync(Guid venueId, string? name = null, string? address = null);
+    Task<Venue> UpdateVenueAsync(long venueId, string? name = null, string? address = null);
 
     Task<HallScheme> AddHallSchemeAsync(
-        Guid venueId,
+        long venueId,
         string schemeName,
         int rows,
         int columns);
 
-    Task RemoveHallSchemeAsync(Guid hallSchemeId);
+    Task RemoveHallSchemeAsync(long hallSchemeId);
 
-    Task<bool> VenueHasAvailableSchemeAsync(Guid venueId);
+    Task<bool> VenueHasAvailableSchemeAsync(long venueId);
 }

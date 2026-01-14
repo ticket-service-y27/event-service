@@ -4,5 +4,5 @@ namespace EventService.Application.Abstractions.Repositories;
 
 public interface IHallSchemeRepository : IRepository<HallScheme>
 {
-    Task<IReadOnlyList<HallScheme>> GetByVenueAsync(Guid venueId);
+    Task<IReadOnlyList<HallScheme>> GetByVenueAsync(long venueId);
 }

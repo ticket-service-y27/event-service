@@ -77,7 +77,6 @@ public class VenueRepository : IVenueRepository
         await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
 
-        // Получаем базовые данные о площадке
         await using var cmd = new NpgsqlCommand(
             "SELECT id, name, address FROM venues WHERE id=@id", conn);
         cmd.Parameters.AddWithValue("id", id);
@@ -93,7 +92,6 @@ public class VenueRepository : IVenueRepository
 
         var hallSchemes = new Collection<HallScheme>();
 
-        // Закрываем предыдущий reader, чтобы открыть новый
         await reader.CloseAsync();
 
         await using var cmdSchemes = new NpgsqlCommand(

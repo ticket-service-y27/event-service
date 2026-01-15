@@ -3,11 +3,13 @@ using Grpc.Core;
 
 namespace EventService.Presentation.Grpc.Services;
 
-public sealed class SeatValidationServiceGrpc : SeatValidationGrpcService.SeatValidationGrpcServiceBase
+public sealed class SeatValidationServiceGrpc
+    : SeatValidationGrpcService.SeatValidationGrpcServiceBase
 {
     private readonly ISeatValidationService _seatValidationService;
 
-    public SeatValidationServiceGrpc(ISeatValidationService seatValidationService)
+    public SeatValidationServiceGrpc(
+        ISeatValidationService seatValidationService)
     {
         _seatValidationService = seatValidationService;
     }
@@ -32,7 +34,7 @@ public sealed class SeatValidationServiceGrpc : SeatValidationGrpcService.SeatVa
         ServerCallContext context)
     {
         bool available = await _seatValidationService.IsSeatAvailableAsync(
-            request.EventId,
+            request.HallSchemeId,
             request.Row,
             request.SeatNumber);
 
@@ -47,7 +49,7 @@ public sealed class SeatValidationServiceGrpc : SeatValidationGrpcService.SeatVa
         ServerCallContext context)
     {
         string status = await _seatValidationService.GetSeatStatusAsync(
-            request.EventId,
+            request.HallSchemeId,
             request.Row,
             request.SeatNumber);
 

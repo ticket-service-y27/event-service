@@ -7,14 +7,14 @@ namespace EventService.Application.SeatValidationServices;
 public class SeatValidationService : ISeatValidationService
 {
     private readonly IHallSchemeRepository _hallSchemeRepository;
-    private readonly IEventRepository _eventRepository;
+    private readonly ISeatRepository _seatRepository;
 
     public SeatValidationService(
         IHallSchemeRepository hallSchemeRepository,
-        IEventRepository eventRepository)
+        ISeatRepository seatRepository)
     {
         _hallSchemeRepository = hallSchemeRepository;
-        _eventRepository = eventRepository;
+        _seatRepository = seatRepository;
     }
 
     public async Task<bool> SeatExistsAsync(long hallSchemeId, int row, int seatNumber)
@@ -30,23 +30,32 @@ public class SeatValidationService : ISeatValidationService
                seatNumber <= scheme.Columns;
     }
 
-    public async Task<bool> IsSeatAvailableAsync(long eventId, int row, int seatNumber)
+    public async Task<bool> IsSeatAvailableAsync(long hallSchemeId, int row, int seatNumber)
     {
-        bool eventExists = await _eventRepository.ExistsAsync(eventId);
+        string? status = await _seatRepository
+            .GetStatusAsync(hallSchemeId, row, seatNumber);
 
-        if (!eventExists)
-            return false;
-
-        return true;
+        return status == null || status.Equals("Free", StringComparison.OrdinalIgnoreCase);
     }
 
-    public async Task<string> GetSeatStatusAsync(long eventId, int row, int seatNumber)
+    public async Task<string> GetSeatStatusAsync(long hallSchemeId, int row, int seatNumber)
     {
-        bool eventExists = await _eventRepository.ExistsAsync(eventId);
+        return await _seatRepository.GetStatusAsync(hallSchemeId, row, seatNumber)
+               ?? "Free";
+    }
 
-        if (!eventExists)
-            return "unknown";
+    public async Task BookSeatAsync(long hallSchemeId, int row, int seatNumber)
+    {
+        if (!await SeatExistsAsync(hallSchemeId, row, seatNumber))
+            throw new ArgumentException("Seat does not exist");
 
-        return "free";
+        if (!await IsSeatAvailableAsync(hallSchemeId, row, seatNumber))
+            throw new InvalidOperationException("Seat already booked");
+
+        await _seatRepository.SetStatusAsync(
+            hallSchemeId,
+            row,
+            seatNumber,
+            "Booked");
     }
 }

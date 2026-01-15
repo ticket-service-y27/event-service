@@ -1,5 +1,7 @@
 <Solution>
-  <Folder Name="/src/" />
+  <Folder Name="/src/">
+    <Project Path="src/EventService/EventService.csproj" />
+  </Folder>
   <Folder Name="/src/Application/">
     <Project Path="src/Application/EventService.Application.Abstractions/EventService.Application.Abstractions.csproj" />
     <Project Path="src/Application/EventService.Application.Contracts/EventService.Application.Contracts.csproj" />
@@ -11,8 +13,5 @@
   </Folder>
   <Folder Name="/src/Presentation/">
     <Project Path="src\Presentation\EventService.Presentation.Grpc\EventService.Presentation.Grpc.csproj" />
-  </Folder>
-  <Folder Name="/src/test/">
-    <Project Path="src/test/EventService/EventService.csproj" />
   </Folder>
 </Solution>

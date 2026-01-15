@@ -6,6 +6,10 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <NoWarn>$(NoWarn);SK1400</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
       <PackageReference Include="Google.Protobuf" />
       <PackageReference Include="Grpc.AspNetCore" />

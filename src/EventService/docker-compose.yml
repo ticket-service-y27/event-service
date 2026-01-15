@@ -15,21 +15,6 @@ services:
     restart: unless-stopped
     networks:
       - csms-event-service-network
-  
-  event_postgres_test:
-    image: postgres:16
-    container_name: event-postgres-test
-    environment:
-      POSTGRES_USER: event_user
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: event_db_test
-    ports:
-      - "5433:5432"
-    volumes:
-      - event_pgdata_test:/var/lib/postgresql/data
-    restart: unless-stopped
-    networks:
-      - csms-event-service-network
 
   zookeeper:
     image: wurstmeister/zookeeper:latest
@@ -97,5 +82,4 @@ networks:
 
 volumes:
   event_pgdata: {}
-  event_pgdata_test: {}
   csms-kafka-data: {}

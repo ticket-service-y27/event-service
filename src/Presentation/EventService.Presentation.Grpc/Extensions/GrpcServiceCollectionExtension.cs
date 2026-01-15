@@ -23,7 +23,6 @@ public static class GrpcServiceCollectionExtension
     public static IEndpointRouteBuilder MapGrpcEndpoints(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGrpcService<EventManagerServiceGrpc>();
-        endpoints.MapGrpcService<HallSchemeServiceGrpc>();
         endpoints.MapGrpcService<SeatValidationServiceGrpc>();
         endpoints.MapGrpcService<VenueManagementServiceGrpc>();
 

@@ -12,6 +12,7 @@
     <Project Path="src\Infrastructure\EventService.Infrastructure.DataAccess\EventService.Infrastructure.DataAccess.csproj" />
   </Folder>
   <Folder Name="/src/Presentation/">
+    <Project Path="src/Presentation/EventService.Presentation.Kafka/EventService.Presentation.Kafka.csproj" />
     <Project Path="src\Presentation\EventService.Presentation.Grpc\EventService.Presentation.Grpc.csproj" />
   </Folder>
 </Solution>

@@ -90,4 +90,8 @@ public class VenueManagementService : IVenueManagementService
         IReadOnlyList<HallScheme> schemes = await _hallSchemeRepository.GetByVenueAsync(venueId);
         return schemes.Count > 0;
     }
+
+    public Task<HallScheme?> GetSchemeAsync(long hallSchemeId) => _hallSchemeRepository.GetByIdAsync(hallSchemeId);
+
+    public Task<IReadOnlyList<HallScheme>> GetVenueSchemesAsync(long venueId) => _hallSchemeRepository.GetByVenueAsync(venueId);
 }

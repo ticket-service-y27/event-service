@@ -14,4 +14,8 @@ public interface IVenueManagementService
     Task RemoveHallSchemeAsync(long hallSchemeId);
 
     Task<bool> VenueHasAvailableSchemeAsync(long venueId);
+
+    Task<HallScheme?> GetSchemeAsync(long hallSchemeId);
+
+    Task<IReadOnlyList<HallScheme>> GetVenueSchemesAsync(long venueId);
 }

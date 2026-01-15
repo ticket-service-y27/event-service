@@ -6,20 +6,21 @@ using Grpc.Core;
 
 namespace EventService.Presentation.Grpc.Services;
 
-public sealed class VenueManagementServiceGrpc : VenueManagementGrpcService.VenueManagementGrpcServiceBase
+public sealed class VenueManagementServiceGrpc : VenueGrpcService.VenueGrpcServiceBase
 {
-    private readonly IVenueManagementService _venueManagementService;
+    private readonly IVenueManagementService _venueService;
 
-    public VenueManagementServiceGrpc(IVenueManagementService venueManagementService)
+    public VenueManagementServiceGrpc(
+        IVenueManagementService venueService)
     {
-        _venueManagementService = venueManagementService;
+        _venueService = venueService;
     }
 
     public override async Task<VenueResponse> CreateVenue(
         CreateVenueRequest request,
         ServerCallContext context)
     {
-        Venue venue = await _venueManagementService.CreateVenueAsync(
+        Venue venue = await _venueService.CreateVenueAsync(
             request.Name,
             request.Address);
 
@@ -30,7 +31,7 @@ public sealed class VenueManagementServiceGrpc : VenueManagementGrpcService.Venu
         UpdateVenueRequest request,
         ServerCallContext context)
     {
-        Venue venue = await _venueManagementService.UpdateVenueAsync(
+        Venue venue = await _venueService.UpdateVenueAsync(
             request.VenueId,
             string.IsNullOrWhiteSpace(request.Name) ? null : request.Name,
             string.IsNullOrWhiteSpace(request.Address) ? null : request.Address);
@@ -38,11 +39,11 @@ public sealed class VenueManagementServiceGrpc : VenueManagementGrpcService.Venu
         return MapVenue(venue);
     }
 
-    public override async Task<VenueHallSchemeResponse> AddHallScheme(
+    public override async Task<HallSchemeResponse> AddHallScheme(
         AddHallSchemeRequest request,
         ServerCallContext context)
     {
-        HallScheme scheme = await _venueManagementService.AddHallSchemeAsync(
+        HallScheme scheme = await _venueService.AddHallSchemeAsync(
             request.VenueId,
             request.SchemeName,
             request.Rows,
@@ -55,16 +56,53 @@ public sealed class VenueManagementServiceGrpc : VenueManagementGrpcService.Venu
         RemoveHallSchemeRequest request,
         ServerCallContext context)
     {
-        await _venueManagementService.RemoveHallSchemeAsync(request.HallSchemeId);
+        await _venueService.RemoveHallSchemeAsync(
+            request.HallSchemeId);
+
         return new Empty();
     }
 
-    public override async Task<VenueHasAvailableSchemeResponse> VenueHasAvailableScheme(
-        VenueHasAvailableSchemeRequest request,
+    public override async Task<HallSchemeResponse> GetHallSchemeById(
+        GetHallSchemeByIdRequest request,
         ServerCallContext context)
     {
-        bool hasAvailable = await _venueManagementService
-            .VenueHasAvailableSchemeAsync(request.VenueId);
+        HallScheme? scheme =
+            await _venueService.GetSchemeAsync(request.HallSchemeId);
+
+        if (scheme is null)
+        {
+            throw new RpcException(
+                new Status(
+                    StatusCode.NotFound,
+                    $"Hall scheme with id={request.HallSchemeId} not found"));
+        }
+
+        return MapHallScheme(scheme);
+    }
+
+    public override async Task<HallSchemesList> GetVenueHallSchemes(
+        GetVenueHallSchemesRequest request,
+        ServerCallContext context)
+    {
+        IReadOnlyList<HallScheme> schemes =
+            await _venueService.GetVenueSchemesAsync(
+                request.VenueId);
+
+        var response = new HallSchemesList();
+        response.Schemes.AddRange(
+            schemes.Select(MapHallScheme));
+
+        return response;
+    }
+
+    public override async Task<VenueHasAvailableSchemeResponse>
+        VenueHasAvailableScheme(
+            VenueHasAvailableSchemeRequest request,
+            ServerCallContext context)
+    {
+        bool hasAvailable =
+            await _venueService.VenueHasAvailableSchemeAsync(
+                request.VenueId);
 
         return new VenueHasAvailableSchemeResponse
         {
@@ -80,7 +118,7 @@ public sealed class VenueManagementServiceGrpc : VenueManagementGrpcService.Venu
             Address = venue.Address,
         };
 
-    private static VenueHallSchemeResponse MapHallScheme(HallScheme scheme)
+    private static HallSchemeResponse MapHallScheme(HallScheme scheme)
         => new()
         {
             Id = scheme.Id,

@@ -1,8 +1,10 @@
 using EventService.Application.Abstractions.Repositories;
 using EventService.Application.Contracts.EventManagerServices;
 using EventService.Application.Models.Artists;
+using EventService.Application.Models.Categories;
 using EventService.Application.Models.Events;
 using EventService.Application.Models.Organizers;
+using EventService.Application.Models.Venues;
 using System.Collections.ObjectModel;
 
 namespace EventService.Application.EventManagerServices;
@@ -38,10 +40,10 @@ public class EventManagerService : IEventManagerService
         long categoryId,
         long venueId)
     {
-        Models.Categories.Category category = await _categoryRepository.GetByIdAsync(categoryId)
+        Category category = await _categoryRepository.GetByIdAsync(categoryId)
                        ?? throw new Exception("Category not found");
 
-        Models.Venues.Venue venue = await _venueRepository.GetByIdAsync(venueId)
+        Venue venue = await _venueRepository.GetByIdAsync(venueId)
                     ?? throw new Exception("Venue not found");
 
         if (startDate >= endDate)
@@ -101,7 +103,7 @@ public class EventManagerService : IEventManagerService
 
         if (categoryId.HasValue)
         {
-            Models.Categories.Category category = await _categoryRepository.GetByIdAsync(categoryId.Value)
+            Category category = await _categoryRepository.GetByIdAsync(categoryId.Value)
                 ?? throw new Exception("Category not found");
 
             updated = updated with
@@ -113,7 +115,7 @@ public class EventManagerService : IEventManagerService
 
         if (venueId.HasValue)
         {
-            Models.Venues.Venue venue = await _venueRepository.GetByIdAsync(venueId.Value)
+            Venue venue = await _venueRepository.GetByIdAsync(venueId.Value)
                 ?? throw new Exception("Venue not found");
 
             updated = updated with

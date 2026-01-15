@@ -1,5 +1,6 @@
 using EventService.Application.Abstractions.Repositories;
 using EventService.Application.Contracts.SeatValidationServices;
+using EventService.Application.Models.Schemes;
 
 namespace EventService.Application.SeatValidationServices;
 
@@ -18,7 +19,7 @@ public class SeatValidationService : ISeatValidationService
 
     public async Task<bool> SeatExistsAsync(long hallSchemeId, int row, int seatNumber)
     {
-        Models.Schemes.HallScheme? scheme = await _hallSchemeRepository.GetByIdAsync(hallSchemeId);
+        HallScheme? scheme = await _hallSchemeRepository.GetByIdAsync(hallSchemeId);
 
         if (scheme == null)
             return false;

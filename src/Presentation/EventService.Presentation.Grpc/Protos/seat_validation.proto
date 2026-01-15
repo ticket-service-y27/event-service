@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+option csharp_namespace = "EventService.Presentation.Grpc";
+
+service SeatValidationGrpcService {
+  rpc SeatExists(SeatExistsRequest) returns (SeatExistsResponse);
+  rpc IsSeatAvailable(IsSeatAvailableRequest) returns (SeatAvailableResponse);
+  rpc GetSeatStatus(GetSeatStatusRequest) returns (SeatStatusResponse);
+}
+
+message SeatExistsRequest {
+  int64 hall_scheme_id = 1;
+  int32 row = 2;
+  int32 seat_number = 3;
+}
+
+message IsSeatAvailableRequest {
+  int64 event_id = 1;
+  int32 row = 2;
+  int32 seat_number = 3;
+}
+
+message GetSeatStatusRequest {
+  int64 event_id = 1;
+  int32 row = 2;
+  int32 seat_number = 3;
+}
+
+message SeatExistsResponse {
+  bool exists = 1;
+}
+
+message SeatAvailableResponse {
+  bool available = 1;
+}
+
+message SeatStatusResponse {
+  string status = 1;
+}

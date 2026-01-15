@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Google.Protobuf" />
+      <PackageReference Include="Grpc.AspNetCore" />
+      <PackageReference Include="Grpc.Tools">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Application\EventService.Application.Contracts\EventService.Application.Contracts.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include="Protos\event_manager.proto" GrpcServices="Server" />
+        <Protobuf Include="Protos\seat_validation.proto" GrpcServices="Server" />
+        <Protobuf Include="Protos\venue_management.proto" GrpcServices="Server" />
+        <Protobuf Include="Protos\hall_scheme.proto" GrpcServices="Server" />
+    </ItemGroup>
+    
+</Project>

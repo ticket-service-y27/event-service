@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+option csharp_namespace = "EventService.Presentation.Grpc";
+
+import "google/protobuf/empty.proto";
+
+service VenueManagementGrpcService {
+  rpc CreateVenue(CreateVenueRequest) returns (VenueResponse);
+  rpc UpdateVenue(UpdateVenueRequest) returns (VenueResponse);
+  rpc AddHallScheme(AddHallSchemeRequest) returns (VenueHallSchemeResponse);
+  rpc RemoveHallScheme(RemoveHallSchemeRequest) returns (google.protobuf.Empty);
+  rpc VenueHasAvailableScheme(VenueHasAvailableSchemeRequest) returns (VenueHasAvailableSchemeResponse);
+}
+
+message CreateVenueRequest {
+  string name = 1;
+  string address = 2;
+}
+
+message UpdateVenueRequest {
+  int64 venue_id = 1;
+  string name = 2;
+  string address = 3;
+}
+
+message AddHallSchemeRequest {
+  int64 venue_id = 1;
+  string scheme_name = 2;
+  int32 rows = 3;
+  int32 columns = 4;
+}
+
+message VenueHallSchemeResponse {
+  int64 id = 1;
+  int64 venue_id = 2;
+  string name = 3;
+  int32 rows = 4;
+  int32 columns = 5;
+}
+
+message RemoveHallSchemeRequest {
+  int64 hall_scheme_id = 1;
+}
+
+message VenueHasAvailableSchemeRequest {
+  int64 venue_id = 1;
+}
+
+message VenueResponse {
+  int64 id = 1;
+  string name = 2;
+  string address = 3;
+}
+
+message VenueHasAvailableSchemeResponse {
+  bool has_available_scheme = 1;
+}

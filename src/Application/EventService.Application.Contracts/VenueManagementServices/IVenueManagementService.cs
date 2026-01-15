@@ -9,11 +9,7 @@ public interface IVenueManagementService
 
     Task<Venue> UpdateVenueAsync(long venueId, string? name = null, string? address = null);
 
-    Task<HallScheme> AddHallSchemeAsync(
-        long venueId,
-        string schemeName,
-        int rows,
-        int columns);
+    Task<HallScheme> AddHallSchemeAsync(long venueId, string schemeName, int rows, int columns);
 
     Task RemoveHallSchemeAsync(long hallSchemeId);
 

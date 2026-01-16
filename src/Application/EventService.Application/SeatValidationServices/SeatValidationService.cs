@@ -1,5 +1,7 @@
+using EventService.Application.Abstractions.Messaging;
 using EventService.Application.Abstractions.Repositories;
 using EventService.Application.Contracts.SeatValidationServices;
+using EventService.Application.Models.Events;
 using EventService.Application.Models.Schemes;
 
 namespace EventService.Application.SeatValidationServices;
@@ -8,13 +10,16 @@ public class SeatValidationService : ISeatValidationService
 {
     private readonly IHallSchemeRepository _hallSchemeRepository;
     private readonly ISeatRepository _seatRepository;
+    private readonly ISeatBookedPublisher _seatBookedPublisher;
 
     public SeatValidationService(
         IHallSchemeRepository hallSchemeRepository,
-        ISeatRepository seatRepository)
+        ISeatRepository seatRepository,
+        ISeatBookedPublisher seatBookedPublisher)
     {
         _hallSchemeRepository = hallSchemeRepository;
         _seatRepository = seatRepository;
+        _seatBookedPublisher = seatBookedPublisher;
     }
 
     public async Task<bool> SeatExistsAsync(long hallSchemeId, int row, int seatNumber)
@@ -44,18 +49,42 @@ public class SeatValidationService : ISeatValidationService
                ?? "Free";
     }
 
-    public async Task BookSeatAsync(long hallSchemeId, int row, int seatNumber)
+    public async Task BookSeatsAsync(long hallSchemeId, IEnumerable<(int Row, int SeatNumber)> seats)
     {
-        if (!await SeatExistsAsync(hallSchemeId, row, seatNumber))
-            throw new ArgumentException("Seat does not exist");
+        var seatList = seats.ToList();
 
-        if (!await IsSeatAvailableAsync(hallSchemeId, row, seatNumber))
-            throw new InvalidOperationException("Seat already booked");
+        if (seatList.Count == 0)
+            throw new ArgumentException("No seats provided");
 
-        await _seatRepository.SetStatusAsync(
-            hallSchemeId,
-            row,
-            seatNumber,
-            "Booked");
+        int seatCount = seatList.Count;
+
+        foreach ((int row, int seatNumber) in seatList)
+        {
+            if (!await SeatExistsAsync(hallSchemeId, row, seatNumber))
+                throw new ArgumentException($"Seat does not exist: row {row}, seat {seatNumber}");
+            seatCount--;
+        }
+
+        foreach ((int row, int seatNumber) in seatList)
+        {
+            if (!await IsSeatAvailableAsync(hallSchemeId, row, seatNumber))
+                throw new InvalidOperationException($"Seat already booked: row {row}, seat {seatNumber}");
+            seatCount--;
+        }
+
+        foreach ((int row, int seatNumber) in seatList)
+        {
+            await _seatRepository.SetStatusAsync(
+                hallSchemeId,
+                row,
+                seatNumber,
+                "Booked");
+        }
+
+        await _seatBookedPublisher.PublishAsync(
+            new SeatBookedEvent(
+                HallSchemeId: hallSchemeId,
+                BookedSeats: seatCount),
+            CancellationToken.None);
     }
 }

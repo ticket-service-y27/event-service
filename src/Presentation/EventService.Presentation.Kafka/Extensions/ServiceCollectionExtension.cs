@@ -1,4 +1,4 @@
-using EventService.Presentation.Kafka.Abstractions;
+using EventService.Application.Abstractions.Messaging;
 using EventService.Presentation.Kafka.Options;
 using EventService.Presentation.Kafka.Publishers;
 using Microsoft.Extensions.Configuration;

@@ -12,4 +12,5 @@ message EventCreatedValue {
   int64 artist_id = 2;
   int32 total_seats = 3;
   int64 event_date = 4;
+  int64 venue_id = 5;
 }

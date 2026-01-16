@@ -11,6 +11,7 @@
       <ProjectReference Include="..\Application\EventService.Application\EventService.Application.csproj" />
       <ProjectReference Include="..\Infrastructure\EventService.Infrastructure.DataAccess\EventService.Infrastructure.DataAccess.csproj" />
       <ProjectReference Include="..\Presentation\EventService.Presentation.Grpc\EventService.Presentation.Grpc.csproj" />
+      <ProjectReference Include="..\Presentation\EventService.Presentation.Kafka\EventService.Presentation.Kafka.csproj" />
     </ItemGroup>
 
 </Project>

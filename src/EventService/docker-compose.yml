@@ -38,8 +38,8 @@ services:
       ALLOW_PLAINTEXT_LISTENER: yes
       KAFKA_CREATE_TOPICS: >
         event_created:1:1,
-        event_updated:1:1,
-        seat_reserved:1:1
+        seat_booked:1:1,
+        venue_created:1:1
     depends_on:
       - zookeeper
     networks:
@@ -69,12 +69,12 @@ services:
       kafka.clusters.0.serde.0.name: ProtobufFile
       kafka.clusters.0.serde.0.properties.protobufFilesDir: /schemas/
 
-      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.event_created: events.EventCreatedKey
-      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.event_created: events.EventCreatedValue
-      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.event_updated: events.EventUpdatedKey
-      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.event_updated: events.EventUpdatedValue
-      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.seat_reserved: events.SeatReservedKey
-      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.seat_reserved: events.SeatReservedValue
+      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.event_created: analytics.EventCreatedKey
+      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.event_created: analytics.EventCreatedValue
+      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.seat_booked: analytics.SeatsBookedKey
+      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.seat_booked: analytics.SeatsBookedValue
+      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.venue_created: analytics.VenueCreatedKey
+      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.venue_created: analytics.VenueCreatedValue
 
 networks:
   csms-event-service-network:

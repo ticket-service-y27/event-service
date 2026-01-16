@@ -1,6 +1,7 @@
 ﻿using EventService.Application.Extensions;
 using EventService.Infrastructure.DataAccess.Extensions;
 using EventService.Presentation.Grpc.Extensions;
+using EventService.Presentation.Kafka.Extensions;
 using FluentMigrator.Runner;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,8 @@ builder.Services.AddDatabaseOptions(builder.Configuration)
 builder.Services.AddInfrastructureRepositories();
 
 builder.Services.AddGrpcServices();
+
+builder.Services.AddKafka(builder.Configuration);
 
 WebApplication app = builder.Build();
 

@@ -48,6 +48,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Application\EventService.Application.Abstractions\EventService.Application.Abstractions.csproj" />
       <ProjectReference Include="..\..\Application\EventService.Application.Models\EventService.Application.Models.csproj" />
     </ItemGroup>
 

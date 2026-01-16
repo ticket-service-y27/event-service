@@ -1,8 +1,10 @@
+using EventService.Application.Abstractions.Messaging;
 using EventService.Application.Abstractions.Repositories;
 using EventService.Application.Contracts.EventManagerServices;
 using EventService.Application.Models.Artists;
 using EventService.Application.Models.Categories;
 using EventService.Application.Models.EventEntities;
+using EventService.Application.Models.Events;
 using EventService.Application.Models.Organizers;
 using EventService.Application.Models.Venues;
 using System.Collections.ObjectModel;
@@ -16,19 +18,22 @@ public class EventManagerService : IEventManagerService
     private readonly IVenueRepository _venueRepository;
     private readonly IEventOrganizerRepository _eventOrganizerRepository;
     private readonly IOrganizerRepository _organizerRepository;
+    private readonly IEventCreatedPublisher _eventCreatedPublisher;
 
     public EventManagerService(
         IEventRepository eventRepository,
         ICategoryRepository categoryRepository,
         IVenueRepository venueRepository,
         IEventOrganizerRepository eventOrganizerRepository,
-        IOrganizerRepository organizerRepository)
+        IOrganizerRepository organizerRepository,
+        IEventCreatedPublisher eventCreatedPublisher)
     {
         _eventRepository = eventRepository;
         _categoryRepository = categoryRepository;
         _venueRepository = venueRepository;
         _eventOrganizerRepository = eventOrganizerRepository;
         _organizerRepository = organizerRepository;
+        _eventCreatedPublisher = eventCreatedPublisher;
     }
 
     public async Task<EventEntity> CreateEventAsync(
@@ -79,6 +84,15 @@ public class EventManagerService : IEventManagerService
 
         await _eventOrganizerRepository.AddAsync(link);
         organizers.Add(link);
+
+        await _eventCreatedPublisher.PublishAsync(
+            new EventCreatedEvent(
+                EventId: entity.Id,
+                ArtistId: link.OrganizerId,
+                TotalSeats: entity.Venue.HallSchemes.Sum(h => h.Rows * h.Columns),
+                EventDate: entity.StartDate,
+                VenueId: venueId),
+            CancellationToken.None);
 
         return entity;
     }

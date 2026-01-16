@@ -1,3 +1,4 @@
+using EventService.Application.Abstractions.Messaging;
 using EventService.Application.Models.Events;
 using EventService.Infrastructure.Messaging.Contracts;
 using EventService.Presentation.Kafka.Abstractions;

@@ -11,4 +11,5 @@ message VenueCreatedValue {
   int64 venue_id = 1;
   int32 total_seats = 2;
   string address = 3;
+  int64 hall_scheme_id = 4;
 }

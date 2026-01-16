@@ -1,5 +1,7 @@
+using EventService.Application.Abstractions.Messaging;
 using EventService.Application.Abstractions.Repositories;
 using EventService.Application.Contracts.VenueManagementServices;
+using EventService.Application.Models.Events;
 using EventService.Application.Models.Schemes;
 using EventService.Application.Models.Venues;
 
@@ -9,13 +11,16 @@ public class VenueManagementService : IVenueManagementService
 {
     private readonly IVenueRepository _venueRepository;
     private readonly IHallSchemeRepository _hallSchemeRepository;
+    private readonly IVenueCreatedPublisher _venueCreatedPublisher;
 
     public VenueManagementService(
         IVenueRepository venueRepository,
-        IHallSchemeRepository hallSchemeRepository)
+        IHallSchemeRepository hallSchemeRepository,
+        IVenueCreatedPublisher venueCreatedPublisher)
     {
         _venueRepository = venueRepository;
         _hallSchemeRepository = hallSchemeRepository;
+        _venueCreatedPublisher = venueCreatedPublisher;
     }
 
     public async Task<Venue> CreateVenueAsync(string name, string address)
@@ -62,8 +67,10 @@ public class VenueManagementService : IVenueManagementService
         if (rows <= 0 || columns <= 0)
             throw new ArgumentException("Hall scheme must have positive size");
 
+        long hallSchemeId = long.Parse(schemeName);
+
         var scheme = new HallScheme(
-            Id: long.Parse(schemeName),
+            Id: hallSchemeId,
             VenueId: venueId,
             Venue: venue,
             Name: schemeName,
@@ -71,6 +78,16 @@ public class VenueManagementService : IVenueManagementService
             Columns: columns);
 
         await _hallSchemeRepository.AddAsync(scheme);
+
+        int totalSeats = rows * columns;
+        await _venueCreatedPublisher.PublishAsync(
+            new VenueCreatedEvent(
+                VenueId: venue.Id,
+                TotalSeats: totalSeats,
+                Address: venue.Address,
+                HallSchemeId: hallSchemeId),
+            CancellationToken.None);
+
         return scheme;
     }
 

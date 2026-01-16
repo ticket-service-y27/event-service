@@ -1,6 +1,6 @@
 using EventService.Application.Abstractions.Repositories;
 using EventService.Application.Models.Artists;
-using EventService.Application.Models.Events;
+using EventService.Application.Models.EventEntities;
 using Npgsql;
 using System.Collections.ObjectModel;
 

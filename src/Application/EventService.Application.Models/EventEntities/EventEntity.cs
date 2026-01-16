@@ -4,7 +4,7 @@ using EventService.Application.Models.Organizers;
 using EventService.Application.Models.Venues;
 using System.Collections.ObjectModel;
 
-namespace EventService.Application.Models.Events;
+namespace EventService.Application.Models.EventEntities;
 
 public record EventEntity(
     long Id,

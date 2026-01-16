@@ -1,5 +1,5 @@
 using EventService.Application.Contracts.EventManagerServices;
-using EventService.Application.Models.Events;
+using EventService.Application.Models.EventEntities;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 

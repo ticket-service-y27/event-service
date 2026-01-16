@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package analytics;
+option csharp_namespace = "EventService.Infrastructure.Messaging.Contracts";
+
+message EventCreatedKey {
+  int64 event_id = 1;
+}
+
+message EventCreatedValue {
+  int64 event_id = 1;
+  int64 artist_id = 2;
+  int32 total_seats = 3;
+  int64 event_date = 4;
+}

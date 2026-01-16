@@ -1,7 +1,7 @@
 using EventService.Application.Abstractions.Repositories;
 using EventService.Application.Models.Artists;
 using EventService.Application.Models.Categories;
-using EventService.Application.Models.Events;
+using EventService.Application.Models.EventEntities;
 using EventService.Application.Models.Organizers;
 using EventService.Application.Models.Venues;
 using Npgsql;

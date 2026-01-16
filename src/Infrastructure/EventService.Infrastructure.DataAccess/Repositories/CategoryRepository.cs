@@ -1,5 +1,6 @@
 using EventService.Application.Abstractions.Repositories;
 using EventService.Application.Models.Categories;
+using EventService.Application.Models.EventEntities;
 using Npgsql;
 using System.Collections.ObjectModel;
 
@@ -32,7 +33,7 @@ public class CategoryRepository : ICategoryRepository
         long categoryId = reader.GetInt64(0);
         string name = reader.GetString(1);
 
-        IReadOnlyList<Application.Models.Events.EventEntity> events = await _eventRepository.GetByCategoryAsync(categoryId);
+        IReadOnlyList<EventEntity> events = await _eventRepository.GetByCategoryAsync(categoryId);
 
         return new Category(
             Id: categoryId,
@@ -55,7 +56,7 @@ public class CategoryRepository : ICategoryRepository
             long categoryId = reader.GetInt64(0);
             string name = reader.GetString(1);
 
-            IReadOnlyList<Application.Models.Events.EventEntity> events = await _eventRepository.GetByCategoryAsync(categoryId);
+            IReadOnlyList<EventEntity> events = await _eventRepository.GetByCategoryAsync(categoryId);
 
             result.Add(new Category(
                 Id: categoryId,
@@ -124,7 +125,7 @@ public class CategoryRepository : ICategoryRepository
 
         long categoryId = reader.GetInt64(0);
 
-        IReadOnlyList<Application.Models.Events.EventEntity> events = await _eventRepository.GetByCategoryAsync(categoryId);
+        IReadOnlyList<EventEntity> events = await _eventRepository.GetByCategoryAsync(categoryId);
 
         return new Category(
             Id: categoryId,

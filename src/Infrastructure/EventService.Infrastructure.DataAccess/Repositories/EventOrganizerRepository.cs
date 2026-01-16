@@ -1,5 +1,5 @@
 using EventService.Application.Abstractions.Repositories;
-using EventService.Application.Models.Events;
+using EventService.Application.Models.EventEntities;
 using EventService.Application.Models.Organizers;
 using Npgsql;
 using System.Collections.ObjectModel;

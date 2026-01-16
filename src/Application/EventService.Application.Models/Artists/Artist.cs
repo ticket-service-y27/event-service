@@ -1,4 +1,4 @@
-using EventService.Application.Models.Events;
+using EventService.Application.Models.EventEntities;
 
 namespace EventService.Application.Models.Artists;
 

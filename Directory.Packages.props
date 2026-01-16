@@ -4,6 +4,7 @@
     <EnablePackageVersionOverride>true</EnablePackageVersionOverride>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Confluent.Kafka" Version="2.13.0" />
     <PackageVersion Include="FluentMigrator" Version="8.0.0" />
     <PackageVersion Include="FluentMigrator.Runner" Version="8.0.0" />
     <PackageVersion Include="Google.Protobuf" Version="3.33.4" />

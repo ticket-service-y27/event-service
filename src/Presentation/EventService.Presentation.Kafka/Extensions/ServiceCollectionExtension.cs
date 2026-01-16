@@ -15,8 +15,8 @@ public static class ServiceCollectionExtension
 
         services.AddScoped<IEventCreatedPublisher, EventCreatedPublisher>();
         services.AddScoped<ISeatBookedPublisher, SeatBookedPublisher>();
+        services.AddScoped<ISeatReturnedPublisher, SeatReturnedPublisher>();
         services.AddScoped<IVenueCreatedPublisher, VenueCreatedPublisher>();
-
         return services;
     }
 }

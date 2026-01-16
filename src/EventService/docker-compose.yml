@@ -75,6 +75,8 @@ services:
       kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.seat_booked: analytics.SeatsBookedValue
       kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.venue_created: analytics.VenueCreatedKey
       kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.venue_created: analytics.VenueCreatedValue
+      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.seat_returned: analytics.SeatsReturnedKey
+      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.seat_returned: analytics.SeatsReturnedValue
 
 networks:
   csms-event-service-network:

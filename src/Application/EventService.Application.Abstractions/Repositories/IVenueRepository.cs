@@ -8,7 +8,7 @@ public interface IVenueRepository
 
     Task<IReadOnlyList<Venue>> GetAllAsync(CancellationToken cancellationToken);
 
-    Task AddAsync(Venue entity, CancellationToken cancellationToken);
+    Task<long> AddAsync(Venue entity, CancellationToken cancellationToken);
 
     Task UpdateAsync(Venue entity, CancellationToken cancellationToken);
 

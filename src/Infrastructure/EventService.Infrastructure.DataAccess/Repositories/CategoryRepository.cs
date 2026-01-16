@@ -66,7 +66,7 @@ public class CategoryRepository : ICategoryRepository
         }
     }
 
-    public async Task AddAsync(Category entity, CancellationToken cancellationToken = default)
+    public async Task<long> AddAsync(Category entity, CancellationToken cancellationToken = default)
     {
         const string sql = "INSERT INTO categories (name) VALUES (@name) RETURNING id";
 
@@ -74,12 +74,9 @@ public class CategoryRepository : ICategoryRepository
         await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("name", entity.Name);
 
-        object? result = await cmd.ExecuteScalarAsync(cancellationToken);
-        if (result == null)
-            throw new InvalidOperationException("Failed to insert category");
+        long id = (long)(await cmd.ExecuteScalarAsync(cancellationToken) ?? 0);
 
-        long id = (long)result;
-        typeof(Category).GetProperty("Id")?.SetValue(entity, id);
+        return id;
     }
 
     public async Task UpdateAsync(Category entity, CancellationToken cancellationToken = default)

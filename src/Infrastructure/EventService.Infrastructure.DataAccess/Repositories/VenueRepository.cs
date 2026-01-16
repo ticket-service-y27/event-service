@@ -18,7 +18,7 @@ public class VenueRepository : IVenueRepository
         _dataSource = builder.Build();
     }
 
-    public async Task AddAsync(Venue entity, CancellationToken cancellationToken)
+    public async Task<long> AddAsync(Venue entity, CancellationToken cancellationToken)
     {
         const string sql = @"
 INSERT INTO venues (name, address) 
@@ -30,12 +30,9 @@ RETURNING id;";
         cmd.Parameters.AddWithValue("name", entity.Name);
         cmd.Parameters.AddWithValue("address", entity.Address);
 
-        object? result = await cmd.ExecuteScalarAsync(cancellationToken);
-        if (result == null)
-            throw new ArgumentException("Could not insert venue");
+        long id = (long)(await cmd.ExecuteScalarAsync(cancellationToken) ?? 0);
 
-        long id = (long)result;
-        typeof(Venue).GetProperty("Id")?.SetValue(entity, id);
+        return id;
     }
 
     public async Task DeleteAsync(long id, CancellationToken cancellationToken)

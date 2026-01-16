@@ -8,7 +8,7 @@ public interface IOrganizerRepository
 
     Task<IReadOnlyList<Organizer>> GetAllAsync(CancellationToken cancellationToken);
 
-    Task AddAsync(Organizer entity, CancellationToken cancellationToken);
+    Task<long> AddAsync(Organizer entity, CancellationToken cancellationToken);
 
     Task UpdateAsync(Organizer entity, CancellationToken cancellationToken);
 

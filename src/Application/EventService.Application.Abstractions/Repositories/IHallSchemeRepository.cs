@@ -8,7 +8,7 @@ public interface IHallSchemeRepository
 
     IAsyncEnumerable<HallScheme> GetAllAsync(CancellationToken cancellationToken);
 
-    Task AddAsync(HallScheme entity, CancellationToken cancellationToken);
+    Task<long> AddAsync(HallScheme entity, CancellationToken cancellationToken);
 
     Task UpdateAsync(HallScheme entity, CancellationToken cancellationToken);
 

@@ -8,7 +8,7 @@ public interface IArtistRepository
 
     IAsyncEnumerable<Artist> GetAllAsync(CancellationToken cancellationToken);
 
-    Task AddAsync(Artist entity, CancellationToken cancellationToken);
+    Task<long> AddAsync(Artist entity, CancellationToken cancellationToken);
 
     Task UpdateAsync(Artist entity, CancellationToken cancellationToken);
 

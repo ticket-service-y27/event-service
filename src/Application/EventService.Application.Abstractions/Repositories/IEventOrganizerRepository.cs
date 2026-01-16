@@ -4,7 +4,7 @@ namespace EventService.Application.Abstractions.Repositories;
 
 public interface IEventOrganizerRepository
 {
-    Task AddAsync(EventOrganizer entity, CancellationToken cancellationToken);
+    Task<long> AddAsync(EventOrganizer entity, CancellationToken cancellationToken);
 
     Task RemoveAsync(long eventId, long organizerId, CancellationToken cancellationToken);
 

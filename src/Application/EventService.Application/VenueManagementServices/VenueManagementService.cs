@@ -40,7 +40,7 @@ public class VenueManagementService : IVenueManagementService
 
         using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-        await _venueRepository.AddAsync(venue, cancellationToken);
+        venue = venue with { Id = await _venueRepository.AddAsync(venue, cancellationToken) };
 
         scope.Complete();
 
@@ -98,7 +98,7 @@ public class VenueManagementService : IVenueManagementService
             Rows: rows,
             Columns: columns);
 
-        await _hallSchemeRepository.AddAsync(scheme, cancellationToken);
+        scheme = scheme with { Id = await _hallSchemeRepository.AddAsync(scheme, cancellationToken) };
 
         scope.Complete();
 

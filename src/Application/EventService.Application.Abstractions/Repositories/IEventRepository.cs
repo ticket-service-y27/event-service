@@ -8,7 +8,7 @@ public interface IEventRepository
 
     IAsyncEnumerable<EventEntity> GetAllAsync(CancellationToken cancellationToken);
 
-    Task AddAsync(EventEntity entity, CancellationToken cancellationToken);
+    Task<long> AddAsync(EventEntity entity, CancellationToken cancellationToken);
 
     Task UpdateAsync(EventEntity entity, CancellationToken cancellationToken);
 

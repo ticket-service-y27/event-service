@@ -77,7 +77,7 @@ public class EventManagerService : IEventManagerService
             Organizers: organizers,
             Artists: artists);
 
-        await _eventRepository.AddAsync(entity, cancellationToken);
+        entity = entity with { Id = await _eventRepository.AddAsync(entity, cancellationToken) };
 
         Organizer organizer =
             await _organizerRepository.GetByIdAsync(organizerId, cancellationToken)
@@ -90,7 +90,7 @@ public class EventManagerService : IEventManagerService
             OrganizerId: organizerId,
             Organizer: organizer);
 
-        await _eventOrganizerRepository.AddAsync(link, cancellationToken);
+        link = link with { Id = await _eventOrganizerRepository.AddAsync(link, cancellationToken) };
         organizers.Add(link);
 
         scope.Complete();

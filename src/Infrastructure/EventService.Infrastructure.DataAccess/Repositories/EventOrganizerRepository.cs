@@ -26,7 +26,7 @@ public class EventOrganizerRepository : IEventOrganizerRepository
         _organizerRepository = organizerRepository;
     }
 
-    public async Task AddAsync(EventOrganizer entity, CancellationToken cancellationToken = default)
+    public async Task<long> AddAsync(EventOrganizer entity, CancellationToken cancellationToken = default)
     {
         const string sql = @"
 INSERT INTO event_organizers (event_id, organizer_id) 
@@ -38,12 +38,9 @@ RETURNING id;";
         cmd.Parameters.AddWithValue("eventId", entity.EventId);
         cmd.Parameters.AddWithValue("organizerId", entity.OrganizerId);
 
-        object? result = await cmd.ExecuteScalarAsync(cancellationToken);
-        if (result == null)
-            throw new InvalidOperationException("Failed to insert event organizer");
+        long id = (long)(await cmd.ExecuteScalarAsync(cancellationToken) ?? 0);
 
-        long id = (long)result;
-        typeof(EventOrganizer).GetProperty("Id")?.SetValue(entity, id);
+        return id;
     }
 
     public async Task RemoveAsync(long eventId, long organizerId, CancellationToken cancellationToken = default)

@@ -56,7 +56,7 @@ public class ArtistRepository : IArtistRepository
         }
     }
 
-    public async Task AddAsync(Artist entity, CancellationToken cancellationToken = default)
+    public async Task<long> AddAsync(Artist entity, CancellationToken cancellationToken = default)
     {
         const string sql = "INSERT INTO artists (name, bio) VALUES (@name, @bio) RETURNING id";
 
@@ -65,12 +65,9 @@ public class ArtistRepository : IArtistRepository
         cmd.Parameters.AddWithValue("name", entity.Name);
         cmd.Parameters.AddWithValue("bio", entity.Bio);
 
-        object? result = await cmd.ExecuteScalarAsync(cancellationToken);
-        if (result == null)
-            throw new InvalidOperationException("Failed to insert artist");
+        long id = (long)(await cmd.ExecuteScalarAsync(cancellationToken) ?? 0);
 
-        long id = (long)result;
-        typeof(Artist).GetProperty("Id")?.SetValue(entity, id);
+        return id;
     }
 
     public async Task UpdateAsync(Artist entity, CancellationToken cancellationToken = default)

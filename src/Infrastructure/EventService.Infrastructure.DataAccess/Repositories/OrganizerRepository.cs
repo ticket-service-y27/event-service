@@ -18,7 +18,7 @@ public class OrganizerRepository : IOrganizerRepository
         _dataSource = builder.Build();
     }
 
-    public async Task AddAsync(Organizer entity, CancellationToken cancellationToken)
+    public async Task<long> AddAsync(Organizer entity, CancellationToken cancellationToken)
     {
         const string sql = @"INSERT INTO organizers (name) VALUES (@name) RETURNING id;";
 
@@ -26,12 +26,9 @@ public class OrganizerRepository : IOrganizerRepository
         await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("name", entity.Name);
 
-        object? result = await cmd.ExecuteScalarAsync(cancellationToken);
-        if (result == null)
-            throw new InvalidOperationException("Failed to insert organizer");
+        long id = (long)(await cmd.ExecuteScalarAsync(cancellationToken) ?? 0);
 
-        long id = (long)result;
-        typeof(Organizer).GetProperty("Id")?.SetValue(entity, id);
+        return id;
     }
 
     public async Task UpdateAsync(Organizer entity, CancellationToken cancellationToken)

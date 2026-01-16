@@ -36,7 +36,7 @@ public class EventRepository : IEventRepository
         _artistRepository = artistRepository;
     }
 
-    public async Task AddAsync(EventEntity entity, CancellationToken cancellationToken)
+    public async Task<long> AddAsync(EventEntity entity, CancellationToken cancellationToken)
     {
         const string sql = @"
 INSERT INTO events (title, description, start_date, end_date, category_id, venue_id)
@@ -51,12 +51,9 @@ VALUES (@title, @desc, @start, @end, @catId, @venueId) RETURNING id;";
         cmd.Parameters.AddWithValue("catId", entity.CategoryId);
         cmd.Parameters.AddWithValue("venueId", entity.VenueId);
 
-        object? result = await cmd.ExecuteScalarAsync(cancellationToken);
-        if (result == null)
-            throw new InvalidOperationException("Failed to insert event");
+        long id = (long)(await cmd.ExecuteScalarAsync(cancellationToken) ?? 0);
 
-        long id = (long)result;
-        typeof(EventEntity).GetProperty("Id")?.SetValue(entity, id);
+        return id;
     }
 
     public async Task UpdateAsync(EventEntity entity, CancellationToken cancellationToken)

@@ -23,7 +23,7 @@ public class HallSchemeRepository : IHallSchemeRepository
         _venueRepository = venueRepository;
     }
 
-    public async Task AddAsync(HallScheme entity, CancellationToken cancellationToken)
+    public async Task<long> AddAsync(HallScheme entity, CancellationToken cancellationToken)
     {
         const string sql = @"
 INSERT INTO hall_schemes (name, rows, columns, venue_id)
@@ -36,12 +36,9 @@ VALUES (@name, @rows, @cols, @venueId) RETURNING id;";
         cmd.Parameters.AddWithValue("cols", entity.Columns);
         cmd.Parameters.AddWithValue("venueId", entity.VenueId);
 
-        object? result = await cmd.ExecuteScalarAsync(cancellationToken);
-        if (result == null)
-            throw new InvalidOperationException("Failed to insert hall scheme");
+        long id = (long)(await cmd.ExecuteScalarAsync(cancellationToken) ?? 0);
 
-        long id = (long)result;
-        typeof(HallScheme).GetProperty("Id")?.SetValue(entity, id);
+        return id;
     }
 
     public async Task UpdateAsync(HallScheme entity, CancellationToken cancellationToken)

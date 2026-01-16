@@ -8,7 +8,7 @@ public interface ICategoryRepository
 
     IAsyncEnumerable<Category> GetAllAsync(CancellationToken cancellationToken);
 
-    Task AddAsync(Category entity, CancellationToken cancellationToken);
+    Task<long> AddAsync(Category entity, CancellationToken cancellationToken);
 
     Task UpdateAsync(Category entity, CancellationToken cancellationToken);
 

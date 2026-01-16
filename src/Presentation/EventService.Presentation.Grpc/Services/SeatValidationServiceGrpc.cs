@@ -58,8 +58,24 @@ public sealed class SeatValidationServiceGrpc
         ServerCallContext context)
     {
         IEnumerable<(int Row, int SeatNumber)> seats = request.Seats.Select(s => (s.Row, s.SeatNumber));
-        await _seatValidationService.BookSeatsAsync(request.HallSchemeId, seats, context.CancellationToken);
+        await _seatValidationService.BookSeatsAsync(
+            request.HallSchemeId,
+            seats,
+            context.CancellationToken);
 
         return new BookSeatsResponse { Success = true };
+    }
+
+    public override async Task<ReturnSeatsResponse> ReturnSeats(
+        ReturnSeatsRequest request,
+        ServerCallContext context)
+    {
+        IEnumerable<(int Row, int SeatNumber)> seats = request.Seats.Select(s => (s.Row, s.SeatNumber));
+        await _seatValidationService.ReturnSeatsAsync(
+            request.HallSchemeId,
+            seats,
+            context.CancellationToken);
+
+        return new ReturnSeatsResponse { Success = true };
     }
 }

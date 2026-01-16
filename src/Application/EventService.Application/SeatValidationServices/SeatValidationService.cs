@@ -12,15 +12,18 @@ public class SeatValidationService : ISeatValidationService
     private readonly IHallSchemeRepository _hallSchemeRepository;
     private readonly ISeatRepository _seatRepository;
     private readonly ISeatBookedPublisher _seatBookedPublisher;
+    private readonly ISeatReturnedPublisher _seatReturnedPublisher;
 
     public SeatValidationService(
         IHallSchemeRepository hallSchemeRepository,
         ISeatRepository seatRepository,
-        ISeatBookedPublisher seatBookedPublisher)
+        ISeatBookedPublisher seatBookedPublisher,
+        ISeatReturnedPublisher seatReturnedPublisher)
     {
         _hallSchemeRepository = hallSchemeRepository;
         _seatRepository = seatRepository;
         _seatBookedPublisher = seatBookedPublisher;
+        _seatReturnedPublisher = seatReturnedPublisher;
     }
 
     public async Task<bool> SeatExistsAsync(
@@ -89,6 +92,41 @@ public class SeatValidationService : ISeatValidationService
             new SeatBookedEvent(
                 HallSchemeId: hallSchemeId,
                 BookedSeats: seatList.Count),
+            CancellationToken.None);
+    }
+
+    public async Task ReturnSeatsAsync(
+        long hallSchemeId,
+        IEnumerable<(int Row, int SeatNumber)> seats,
+        CancellationToken cancellationToken)
+    {
+        var seatList = seats.ToList();
+
+        if (seatList.Count == 0)
+            throw new ArgumentException("No seats provided");
+
+        using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+        foreach ((int row, int seatNumber) in seatList)
+        {
+            if (!await SeatExistsAsync(hallSchemeId, row, seatNumber, cancellationToken))
+                throw new ArgumentException($"Seat does not exist: row {row}, seat {seatNumber}");
+
+            if (await IsSeatAvailableAsync(hallSchemeId, row, seatNumber, cancellationToken))
+                throw new InvalidOperationException($"Seat is not booked: row {row}, seat {seatNumber}");
+        }
+
+        foreach ((int row, int seatNumber) in seatList)
+        {
+            await _seatRepository.SetStatusAsync(hallSchemeId, row, seatNumber, "Free", cancellationToken);
+        }
+
+        scope.Complete();
+
+        await _seatReturnedPublisher.PublishAsync(
+            new SeatReturnedEvent(
+                HallSchemeId: hallSchemeId,
+                ReturnedSeats: seatList.Count),
             CancellationToken.None);
     }
 }

@@ -9,4 +9,9 @@ public interface ISeatValidationService
     Task<string> GetSeatStatusAsync(long hallSchemeId, int row, int seatNumber,  CancellationToken cancellationToken);
 
     Task BookSeatsAsync(long hallSchemeId, IEnumerable<(int Row, int SeatNumber)> seats,  CancellationToken cancellationToken);
+
+    Task ReturnSeatsAsync(
+        long hallSchemeId,
+        IEnumerable<(int Row, int SeatNumber)> seats,
+        CancellationToken cancellationToken);
 }

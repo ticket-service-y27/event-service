@@ -8,6 +8,8 @@ public class KafkaOptions
 
     public string SeatBookedTopic { get; init; } = string.Empty;
 
+    public string SeatReturnedTopic { get; init; } = string.Empty;
+
     public string VenueCreatedTopic { get; init; } = string.Empty;
 
     public int BatchSize { get; init; } = 100;

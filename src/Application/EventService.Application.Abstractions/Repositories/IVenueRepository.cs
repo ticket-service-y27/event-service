@@ -4,15 +4,15 @@ namespace EventService.Application.Abstractions.Repositories;
 
 public interface IVenueRepository
 {
-    Task<Venue?> GetByIdAsync(long id);
+    Task<Venue?> GetByIdAsync(long id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<Venue>> GetAllAsync();
+    Task<IReadOnlyList<Venue>> GetAllAsync(CancellationToken cancellationToken);
 
-    Task AddAsync(Venue entity);
+    Task AddAsync(Venue entity, CancellationToken cancellationToken);
 
-    Task UpdateAsync(Venue entity);
+    Task UpdateAsync(Venue entity, CancellationToken cancellationToken);
 
-    Task DeleteAsync(long id);
+    Task DeleteAsync(long id, CancellationToken cancellationToken);
 
-    Task<bool> HasHallSchemesAsync(long venueId);
+    Task<bool> HasHallSchemesAsync(long venueId, CancellationToken cancellationToken);
 }

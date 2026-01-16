@@ -4,15 +4,15 @@ namespace EventService.Application.Abstractions.Repositories;
 
 public interface IOrganizerRepository
 {
-    Task<Organizer?> GetByIdAsync(long id);
+    Task<Organizer?> GetByIdAsync(long id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<Organizer>> GetAllAsync();
+    Task<IReadOnlyList<Organizer>> GetAllAsync(CancellationToken cancellationToken);
 
-    Task AddAsync(Organizer entity);
+    Task AddAsync(Organizer entity, CancellationToken cancellationToken);
 
-    Task UpdateAsync(Organizer entity);
+    Task UpdateAsync(Organizer entity, CancellationToken cancellationToken);
 
-    Task DeleteAsync(long id);
+    Task DeleteAsync(long id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<Organizer>> GetByEventAsync(long eventId);
+    IAsyncEnumerable<Organizer> GetByEventAsync(long eventId, CancellationToken cancellationToken);
 }

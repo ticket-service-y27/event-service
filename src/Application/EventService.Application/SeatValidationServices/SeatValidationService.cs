@@ -3,6 +3,7 @@ using EventService.Application.Abstractions.Repositories;
 using EventService.Application.Contracts.SeatValidationServices;
 using EventService.Application.Models.Events;
 using EventService.Application.Models.Schemes;
+using System.Transactions;
 
 namespace EventService.Application.SeatValidationServices;
 
@@ -22,12 +23,14 @@ public class SeatValidationService : ISeatValidationService
         _seatBookedPublisher = seatBookedPublisher;
     }
 
-    public async Task<bool> SeatExistsAsync(long hallSchemeId, int row, int seatNumber)
+    public async Task<bool> SeatExistsAsync(
+        long hallSchemeId,
+        int row,
+        int seatNumber,
+        CancellationToken cancellationToken)
     {
-        HallScheme? scheme = await _hallSchemeRepository.GetByIdAsync(hallSchemeId);
-
-        if (scheme == null)
-            return false;
+        HallScheme? scheme = await _hallSchemeRepository.GetByIdAsync(hallSchemeId, cancellationToken);
+        if (scheme == null) return false;
 
         return row > 0 &&
                seatNumber > 0 &&
@@ -35,56 +38,57 @@ public class SeatValidationService : ISeatValidationService
                seatNumber <= scheme.Columns;
     }
 
-    public async Task<bool> IsSeatAvailableAsync(long hallSchemeId, int row, int seatNumber)
+    public async Task<bool> IsSeatAvailableAsync(
+        long hallSchemeId,
+        int row,
+        int seatNumber,
+        CancellationToken cancellationToken)
     {
-        string? status = await _seatRepository
-            .GetStatusAsync(hallSchemeId, row, seatNumber);
-
+        string? status = await _seatRepository.GetStatusAsync(hallSchemeId, row, seatNumber, cancellationToken);
         return status == null || status.Equals("Free", StringComparison.OrdinalIgnoreCase);
     }
 
-    public async Task<string> GetSeatStatusAsync(long hallSchemeId, int row, int seatNumber)
+    public async Task<string> GetSeatStatusAsync(
+        long hallSchemeId,
+        int row,
+        int seatNumber,
+        CancellationToken cancellationToken)
     {
-        return await _seatRepository.GetStatusAsync(hallSchemeId, row, seatNumber)
-               ?? "Free";
+        return await _seatRepository.GetStatusAsync(hallSchemeId, row, seatNumber, cancellationToken) ?? "Unknown";
     }
 
-    public async Task BookSeatsAsync(long hallSchemeId, IEnumerable<(int Row, int SeatNumber)> seats)
+    public async Task BookSeatsAsync(
+        long hallSchemeId,
+        IEnumerable<(int Row, int SeatNumber)> seats,
+        CancellationToken cancellationToken)
     {
         var seatList = seats.ToList();
 
         if (seatList.Count == 0)
             throw new ArgumentException("No seats provided");
 
-        int seatCount = seatList.Count;
+        using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
         foreach ((int row, int seatNumber) in seatList)
         {
-            if (!await SeatExistsAsync(hallSchemeId, row, seatNumber))
+            if (!await SeatExistsAsync(hallSchemeId, row, seatNumber, cancellationToken))
                 throw new ArgumentException($"Seat does not exist: row {row}, seat {seatNumber}");
-            seatCount--;
-        }
 
-        foreach ((int row, int seatNumber) in seatList)
-        {
-            if (!await IsSeatAvailableAsync(hallSchemeId, row, seatNumber))
+            if (!await IsSeatAvailableAsync(hallSchemeId, row, seatNumber, cancellationToken))
                 throw new InvalidOperationException($"Seat already booked: row {row}, seat {seatNumber}");
-            seatCount--;
         }
 
         foreach ((int row, int seatNumber) in seatList)
         {
-            await _seatRepository.SetStatusAsync(
-                hallSchemeId,
-                row,
-                seatNumber,
-                "Booked");
+            await _seatRepository.SetStatusAsync(hallSchemeId, row, seatNumber, "Booked", cancellationToken);
         }
+
+        scope.Complete();
 
         await _seatBookedPublisher.PublishAsync(
             new SeatBookedEvent(
                 HallSchemeId: hallSchemeId,
-                BookedSeats: seatCount),
+                BookedSeats: seatList.Count),
             CancellationToken.None);
     }
 }

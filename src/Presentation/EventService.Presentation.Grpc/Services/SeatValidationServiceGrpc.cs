@@ -21,12 +21,10 @@ public sealed class SeatValidationServiceGrpc
         bool exists = await _seatValidationService.SeatExistsAsync(
             request.HallSchemeId,
             request.Row,
-            request.SeatNumber);
+            request.SeatNumber,
+            context.CancellationToken);
 
-        return new SeatExistsResponse
-        {
-            Exists = exists,
-        };
+        return new SeatExistsResponse { Exists = exists };
     }
 
     public override async Task<SeatAvailableResponse> IsSeatAvailable(
@@ -36,12 +34,10 @@ public sealed class SeatValidationServiceGrpc
         bool available = await _seatValidationService.IsSeatAvailableAsync(
             request.HallSchemeId,
             request.Row,
-            request.SeatNumber);
+            request.SeatNumber,
+            context.CancellationToken);
 
-        return new SeatAvailableResponse
-        {
-            Available = available,
-        };
+        return new SeatAvailableResponse { Available = available };
     }
 
     public override async Task<SeatStatusResponse> GetSeatStatus(
@@ -51,11 +47,19 @@ public sealed class SeatValidationServiceGrpc
         string status = await _seatValidationService.GetSeatStatusAsync(
             request.HallSchemeId,
             request.Row,
-            request.SeatNumber);
+            request.SeatNumber,
+            context.CancellationToken);
 
-        return new SeatStatusResponse
-        {
-            Status = status,
-        };
+        return new SeatStatusResponse { Status = status };
+    }
+
+    public override async Task<BookSeatsResponse> BookSeats(
+        BookSeatsRequest request,
+        ServerCallContext context)
+    {
+        IEnumerable<(int Row, int SeatNumber)> seats = request.Seats.Select(s => (s.Row, s.SeatNumber));
+        await _seatValidationService.BookSeatsAsync(request.HallSchemeId, seats, context.CancellationToken);
+
+        return new BookSeatsResponse { Success = true };
     }
 }

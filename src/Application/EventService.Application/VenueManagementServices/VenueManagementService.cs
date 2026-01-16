@@ -4,6 +4,7 @@ using EventService.Application.Contracts.VenueManagementServices;
 using EventService.Application.Models.Events;
 using EventService.Application.Models.Schemes;
 using EventService.Application.Models.Venues;
+using System.Transactions;
 
 namespace EventService.Application.VenueManagementServices;
 
@@ -23,7 +24,7 @@ public class VenueManagementService : IVenueManagementService
         _venueCreatedPublisher = venueCreatedPublisher;
     }
 
-    public async Task<Venue> CreateVenueAsync(string name, string address)
+    public async Task<Venue> CreateVenueAsync(string name, string address, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Venue name is required", nameof(name));
@@ -37,14 +38,24 @@ public class VenueManagementService : IVenueManagementService
             Address: address,
             HallSchemes: new List<HallScheme>());
 
-        await _venueRepository.AddAsync(venue);
+        using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+        await _venueRepository.AddAsync(venue, cancellationToken);
+
+        scope.Complete();
 
         return venue;
     }
 
-    public async Task<Venue> UpdateVenueAsync(long venueId, string? name = null, string? address = null)
+    public async Task<Venue> UpdateVenueAsync(
+        long venueId,
+        CancellationToken cancellationToken,
+        string? name = null,
+        string? address = null)
     {
-        Venue? venue = await _venueRepository.GetByIdAsync(venueId);
+        using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+        Venue? venue = await _venueRepository.GetByIdAsync(venueId, cancellationToken);
         if (venue == null)
             throw new KeyNotFoundException($"Venue {venueId} not found");
 
@@ -54,18 +65,28 @@ public class VenueManagementService : IVenueManagementService
             Address = address ?? venue.Address,
         };
 
-        await _venueRepository.UpdateAsync(updated);
+        await _venueRepository.UpdateAsync(updated, cancellationToken);
+
+        scope.Complete();
+
         return updated;
     }
 
-    public async Task<HallScheme> AddHallSchemeAsync(long venueId, string schemeName, int rows, int columns)
+    public async Task<HallScheme> AddHallSchemeAsync(
+        long venueId,
+        string schemeName,
+        int rows,
+        int columns,
+        CancellationToken cancellationToken)
     {
-        Venue? venue = await _venueRepository.GetByIdAsync(venueId);
-        if (venue == null)
-            throw new KeyNotFoundException($"Venue {venueId} not found");
-
         if (rows <= 0 || columns <= 0)
             throw new ArgumentException("Hall scheme must have positive size");
+
+        using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+        Venue? venue = await _venueRepository.GetByIdAsync(venueId, cancellationToken);
+        if (venue == null)
+            throw new KeyNotFoundException($"Venue {venueId} not found");
 
         long hallSchemeId = long.Parse(schemeName);
 
@@ -77,7 +98,9 @@ public class VenueManagementService : IVenueManagementService
             Rows: rows,
             Columns: columns);
 
-        await _hallSchemeRepository.AddAsync(scheme);
+        await _hallSchemeRepository.AddAsync(scheme, cancellationToken);
+
+        scope.Complete();
 
         int totalSeats = rows * columns;
         await _venueCreatedPublisher.PublishAsync(
@@ -91,24 +114,42 @@ public class VenueManagementService : IVenueManagementService
         return scheme;
     }
 
-    public async Task RemoveHallSchemeAsync(long hallSchemeId)
+    public async Task RemoveHallSchemeAsync(long hallSchemeId, CancellationToken cancellationToken)
     {
-        HallScheme? scheme = await _hallSchemeRepository.GetByIdAsync(hallSchemeId);
-        if (scheme == null) return;
+        using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-        await _hallSchemeRepository.DeleteAsync(scheme.Id);
+        HallScheme? scheme = await _hallSchemeRepository.GetByIdAsync(hallSchemeId, cancellationToken);
+        if (scheme != null)
+            await _hallSchemeRepository.DeleteAsync(scheme.Id, cancellationToken);
+
+        scope.Complete();
     }
 
-    public async Task<bool> VenueHasAvailableSchemeAsync(long venueId)
+    public async Task<bool> VenueHasAvailableSchemeAsync(long venueId, CancellationToken cancellationToken)
     {
-        Venue? venue = await _venueRepository.GetByIdAsync(venueId);
+        Venue? venue = await _venueRepository.GetByIdAsync(venueId, cancellationToken);
         if (venue == null) return false;
 
-        IReadOnlyList<HallScheme> schemes = await _hallSchemeRepository.GetByVenueAsync(venueId);
+        var schemes = new List<HallScheme>();
+        await foreach (HallScheme scheme in _hallSchemeRepository.GetByVenueAsync(venueId, cancellationToken))
+        {
+            schemes.Add(scheme);
+        }
+
         return schemes.Count > 0;
     }
 
-    public Task<HallScheme?> GetSchemeAsync(long hallSchemeId) => _hallSchemeRepository.GetByIdAsync(hallSchemeId);
+    public Task<HallScheme?> GetSchemeAsync(long hallSchemeId, CancellationToken cancellationToken) =>
+        _hallSchemeRepository.GetByIdAsync(hallSchemeId, cancellationToken);
 
-    public Task<IReadOnlyList<HallScheme>> GetVenueSchemesAsync(long venueId) => _hallSchemeRepository.GetByVenueAsync(venueId);
+    public async Task<IReadOnlyList<HallScheme>> GetVenueSchemesAsync(long venueId, CancellationToken cancellationToken)
+    {
+        var list = new List<HallScheme>();
+        await foreach (HallScheme scheme in _hallSchemeRepository.GetByVenueAsync(venueId, cancellationToken))
+        {
+            list.Add(scheme);
+        }
+
+        return list;
+    }
 }

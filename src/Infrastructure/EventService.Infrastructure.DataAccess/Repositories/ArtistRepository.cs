@@ -1,31 +1,34 @@
 using EventService.Application.Abstractions.Repositories;
 using EventService.Application.Models.Artists;
 using EventService.Application.Models.EventEntities;
+using EventService.Infrastructure.DataAccess.DataBase.Options;
+using Microsoft.Extensions.Options;
 using Npgsql;
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 
 namespace EventService.Infrastructure.DataAccess.Repositories;
 
 public class ArtistRepository : IArtistRepository
 {
-    private readonly string _connectionString;
+    private readonly NpgsqlDataSource _dataSource;
 
-    public ArtistRepository(string connectionString)
+    public ArtistRepository(IOptions<DatabaseOptions> options)
     {
-        _connectionString = connectionString;
+        var builder = new NpgsqlDataSourceBuilder(options.Value.GetConnectionString());
+        _dataSource = builder.Build();
     }
 
-    public async Task<Artist?> GetByIdAsync(long id)
+    public async Task<Artist?> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
-        await using var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
+        const string sql = "SELECT id, name, bio FROM artists WHERE id = @id";
 
-        await using var cmd = new NpgsqlCommand(
-            "SELECT id, name, bio FROM artists WHERE id = @id", conn);
+        await using NpgsqlConnection conn = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("id", id);
 
-        await using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync();
-        if (!await reader.ReadAsync())
+        await using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
             return null;
 
         return new Artist(
@@ -35,100 +38,87 @@ public class ArtistRepository : IArtistRepository
             Events: new Collection<EventEntity>());
     }
 
-    public async Task<IReadOnlyList<Artist>> GetAllAsync()
+    public async IAsyncEnumerable<Artist> GetAllAsync([EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var result = new Collection<Artist>();
+        const string sql = "SELECT id, name, bio FROM artists";
 
-        await using var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
+        await using NpgsqlConnection conn = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        await using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
-        await using var cmd = new NpgsqlCommand("SELECT id, name, bio FROM artists", conn);
-
-        await using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
+        while (await reader.ReadAsync(cancellationToken))
         {
-            result.Add(new Artist(
+            yield return new Artist(
                 Id: reader.GetInt64(0),
                 Name: reader.GetString(1),
                 Bio: reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
-                Events: new Collection<EventEntity>()));
+                Events: new Collection<EventEntity>());
         }
-
-        return result;
     }
 
-    public async Task AddAsync(Artist entity)
+    public async Task AddAsync(Artist entity, CancellationToken cancellationToken = default)
     {
-        await using var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
+        const string sql = "INSERT INTO artists (name, bio) VALUES (@name, @bio) RETURNING id";
 
-        await using var cmd = new NpgsqlCommand(
-            "INSERT INTO artists (name, bio) VALUES (@name, @bio) RETURNING id", conn);
+        await using NpgsqlConnection conn = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("name", entity.Name);
-        cmd.Parameters.AddWithValue("bio", entity.Bio ?? string.Empty);
+        cmd.Parameters.AddWithValue("bio", entity.Bio);
 
-        object? result = await cmd.ExecuteScalarAsync();
-
+        object? result = await cmd.ExecuteScalarAsync(cancellationToken);
         if (result == null)
-           throw new ArgumentException($"Could not insert artist with id {entity.Id}");
+            throw new InvalidOperationException("Failed to insert artist");
 
         long id = (long)result;
-
         typeof(Artist).GetProperty("Id")?.SetValue(entity, id);
     }
 
-    public async Task UpdateAsync(Artist entity)
+    public async Task UpdateAsync(Artist entity, CancellationToken cancellationToken = default)
     {
-        await using var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
+        const string sql = "UPDATE artists SET name = @name, bio = @bio WHERE id = @id";
 
-        await using var cmd = new NpgsqlCommand(
-            "UPDATE artists SET name = @name, bio = @bio WHERE id = @id", conn);
+        await using NpgsqlConnection conn = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("id", entity.Id);
         cmd.Parameters.AddWithValue("name", entity.Name);
-        cmd.Parameters.AddWithValue("bio", entity.Bio ?? string.Empty);
+        cmd.Parameters.AddWithValue("bio", entity.Bio);
 
-        await cmd.ExecuteNonQueryAsync();
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(long id)
+    public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
-        await using var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
+        const string sql = "DELETE FROM artists WHERE id = @id";
 
-        await using var cmd = new NpgsqlCommand("DELETE FROM artists WHERE id = @id", conn);
+        await using NpgsqlConnection conn = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("id", id);
 
-        await cmd.ExecuteNonQueryAsync();
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<Artist>> GetByEventAsync(long eventId)
+    public async IAsyncEnumerable<Artist> GetByEventAsync(
+        long eventId,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var result = new Collection<Artist>();
+        const string sql = @"
+            SELECT a.id, a.name, a.bio
+            FROM artists a
+            INNER JOIN event_artists ea ON a.id = ea.artist_id
+            WHERE ea.event_id = @eventId";
 
-        await using var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
-
-        await using var cmd = new NpgsqlCommand(
-            @"
-                SELECT a.id, a.name, a.bio
-                FROM artists a
-                INNER JOIN event_artists ea ON a.id = ea.artist_id
-                WHERE ea.event_id = @eventId",
-            conn);
-
+        await using NpgsqlConnection conn = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("eventId", eventId);
 
-        await using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
+        await using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
         {
-            result.Add(new Artist(
+            yield return new Artist(
                 Id: reader.GetInt64(0),
                 Name: reader.GetString(1),
                 Bio: reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
-                Events: new Collection<EventEntity>()));
+                Events: new Collection<EventEntity>());
         }
-
-        return result;
     }
 }

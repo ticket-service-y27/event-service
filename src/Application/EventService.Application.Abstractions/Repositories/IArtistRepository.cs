@@ -4,15 +4,15 @@ namespace EventService.Application.Abstractions.Repositories;
 
 public interface IArtistRepository
 {
-    Task<Artist?> GetByIdAsync(long id);
+    Task<Artist?> GetByIdAsync(long id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<Artist>> GetAllAsync();
+    IAsyncEnumerable<Artist> GetAllAsync(CancellationToken cancellationToken);
 
-    Task AddAsync(Artist entity);
+    Task AddAsync(Artist entity, CancellationToken cancellationToken);
 
-    Task UpdateAsync(Artist entity);
+    Task UpdateAsync(Artist entity, CancellationToken cancellationToken);
 
-    Task DeleteAsync(long id);
+    Task DeleteAsync(long id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<Artist>> GetByEventAsync(long eventId);
+    IAsyncEnumerable<Artist> GetByEventAsync(long eventId, CancellationToken cancellationToken);
 }

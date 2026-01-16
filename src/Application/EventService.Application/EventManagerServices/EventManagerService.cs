@@ -8,6 +8,7 @@ using EventService.Application.Models.Events;
 using EventService.Application.Models.Organizers;
 using EventService.Application.Models.Venues;
 using System.Collections.ObjectModel;
+using System.Transactions;
 
 namespace EventService.Application.EventManagerServices;
 
@@ -43,13 +44,19 @@ public class EventManagerService : IEventManagerService
         DateTime startDate,
         DateTime endDate,
         long categoryId,
-        long venueId)
+        long venueId,
+        CancellationToken cancellationToken)
     {
-        Category category = await _categoryRepository.GetByIdAsync(categoryId)
-                       ?? throw new Exception("Category not found");
+        using var scope = new TransactionScope(
+            TransactionScopeAsyncFlowOption.Enabled);
 
-        Venue venue = await _venueRepository.GetByIdAsync(venueId)
-                    ?? throw new Exception("Venue not found");
+        Category category =
+            await _categoryRepository.GetByIdAsync(categoryId, cancellationToken)
+            ?? throw new Exception("Category not found");
+
+        Venue venue =
+            await _venueRepository.GetByIdAsync(venueId, cancellationToken)
+            ?? throw new Exception("Venue not found");
 
         if (startDate >= endDate)
             throw new Exception("StartDate must be earlier than EndDate");
@@ -70,10 +77,11 @@ public class EventManagerService : IEventManagerService
             Organizers: organizers,
             Artists: artists);
 
-        await _eventRepository.AddAsync(entity);
+        await _eventRepository.AddAsync(entity, cancellationToken);
 
-        Organizer organizer = await _organizerRepository.GetByIdAsync(organizerId)
-                        ?? throw new Exception("Organizer not found");
+        Organizer organizer =
+            await _organizerRepository.GetByIdAsync(organizerId, cancellationToken)
+            ?? throw new Exception("Organizer not found");
 
         var link = new EventOrganizer(
             Id: 0,
@@ -82,8 +90,10 @@ public class EventManagerService : IEventManagerService
             OrganizerId: organizerId,
             Organizer: organizer);
 
-        await _eventOrganizerRepository.AddAsync(link);
+        await _eventOrganizerRepository.AddAsync(link, cancellationToken);
         organizers.Add(link);
+
+        scope.Complete();
 
         await _eventCreatedPublisher.PublishAsync(
             new EventCreatedEvent(
@@ -100,6 +110,7 @@ public class EventManagerService : IEventManagerService
     public async Task<EventEntity> UpdateEventAsync(
         long organizerId,
         long eventId,
+        CancellationToken cancellationToken,
         string? title = null,
         string? description = null,
         DateTime? startDate = null,
@@ -107,17 +118,22 @@ public class EventManagerService : IEventManagerService
         long? categoryId = null,
         long? venueId = null)
     {
-        EventEntity ev = await _eventRepository.GetByIdAsync(eventId)
+        using var scope = new TransactionScope(
+            TransactionScopeAsyncFlowOption.Enabled);
+
+        EventEntity ev =
+            await _eventRepository.GetByIdAsync(eventId, cancellationToken)
             ?? throw new Exception("Event not found");
 
-        if (!await CanEditEventAsync(organizerId, eventId))
+        if (!await CanEditEventAsync(organizerId, eventId, cancellationToken))
             throw new UnauthorizedAccessException("User cannot edit this event");
 
         EventEntity updated = ev;
 
         if (categoryId.HasValue)
         {
-            Category category = await _categoryRepository.GetByIdAsync(categoryId.Value)
+            Category category =
+                await _categoryRepository.GetByIdAsync(categoryId.Value, cancellationToken)
                 ?? throw new Exception("Category not found");
 
             updated = updated with
@@ -129,7 +145,8 @@ public class EventManagerService : IEventManagerService
 
         if (venueId.HasValue)
         {
-            Venue venue = await _venueRepository.GetByIdAsync(venueId.Value)
+            Venue venue =
+                await _venueRepository.GetByIdAsync(venueId.Value, cancellationToken)
                 ?? throw new Exception("Venue not found");
 
             updated = updated with
@@ -154,21 +171,31 @@ public class EventManagerService : IEventManagerService
         if (endDate.HasValue)
             updated = updated with { EndDate = endDate.Value };
 
-        await _eventRepository.UpdateAsync(updated);
+        await _eventRepository.UpdateAsync(updated, cancellationToken);
+
+        scope.Complete();
 
         return updated;
     }
 
-    public async Task<bool> CanEditEventAsync(long organizerId, long eventId)
+    public async Task<bool> CanEditEventAsync(
+        long organizerId,
+        long eventId,
+        CancellationToken cancellationToken)
     {
-        if (await IsAdminAsync(organizerId))
+        if (await IsAdminAsync(organizerId, cancellationToken))
             return true;
 
-        IReadOnlyList<EventOrganizer> organizers = await _eventOrganizerRepository.GetByEventAsync(eventId);
+        var organizers = new List<EventOrganizer>();
+        await foreach (EventOrganizer o in _eventOrganizerRepository.GetByEventAsync(eventId, cancellationToken))
+        {
+            organizers.Add(o);
+        }
+
         return organizers.Any(o => o.OrganizerId == organizerId);
     }
 
-    public Task<bool> IsAdminAsync(long userId)
+    public Task<bool> IsAdminAsync(long userId, CancellationToken cancellationToken)
     {
         throw new NotImplementedException("Метод IsAdminAsync еще не реализован");
     }

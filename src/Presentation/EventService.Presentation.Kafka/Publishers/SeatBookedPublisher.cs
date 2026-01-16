@@ -24,10 +24,10 @@ public sealed class SeatBookedPublisher : ISeatBookedPublisher
 
         var value = new SeatsBookedValue
         {
-            EventId = evt.EventId,
+            HallSchemeId = evt.HallSchemeId,
             BookedSeats = evt.BookedSeats,
         };
 
-        return _producer.ProduceAsync(_options.SeatBookedTopic, evt.EventId, value, ct);
+        return _producer.ProduceAsync(_options.SeatBookedTopic, evt.HallSchemeId, value, ct);
     }
 }

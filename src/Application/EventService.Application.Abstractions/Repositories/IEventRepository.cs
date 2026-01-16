@@ -4,21 +4,21 @@ namespace EventService.Application.Abstractions.Repositories;
 
 public interface IEventRepository
 {
-    Task<EventEntity?> GetByIdAsync(long id);
+    Task<EventEntity?> GetByIdAsync(long id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<EventEntity>> GetAllAsync();
+    IAsyncEnumerable<EventEntity> GetAllAsync(CancellationToken cancellationToken);
 
-    Task AddAsync(EventEntity entity);
+    Task AddAsync(EventEntity entity, CancellationToken cancellationToken);
 
-    Task UpdateAsync(EventEntity entity);
+    Task UpdateAsync(EventEntity entity, CancellationToken cancellationToken);
 
-    Task DeleteAsync(long id);
+    Task DeleteAsync(long id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<EventEntity>> GetByCategoryAsync(long categoryId);
+    Task<IReadOnlyList<EventEntity>> GetByCategoryAsync(long categoryId, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<EventEntity>> GetByVenueAsync(long venueId);
+    Task<IReadOnlyList<EventEntity>> GetByVenueAsync(long venueId, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<EventEntity>> GetByDateRangeAsync(DateTime left, DateTime right);
+    Task<IReadOnlyList<EventEntity>> GetByDateRangeAsync(DateTime left, DateTime right, CancellationToken cancellationToken);
 
-    Task<bool> ExistsAsync(long eventId);
+    Task<bool> ExistsAsync(long eventId, CancellationToken cancellationToken);
 }

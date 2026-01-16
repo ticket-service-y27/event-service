@@ -3,6 +3,7 @@ using EventService.Application.Models.Events;
 using EventService.Infrastructure.Messaging.Contracts;
 using EventService.Presentation.Kafka.Abstractions;
 using EventService.Presentation.Kafka.Options;
+using Google.Protobuf.WellKnownTypes;
 
 namespace EventService.Presentation.Kafka.Publishers;
 
@@ -27,7 +28,7 @@ public sealed class EventCreatedPublisher : IEventCreatedPublisher
             EventId = evt.EventId,
             ArtistId = evt.ArtistId,
             TotalSeats = evt.TotalSeats,
-            EventDate = evt.EventDate.ToUnixTimeSeconds(),
+            EventDate = evt.EventDate.ToTimestamp(),
         };
 
         return _producer.ProduceAsync(_options.EventCreatedTopic, evt.EventId, value, ct);

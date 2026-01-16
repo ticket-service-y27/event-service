@@ -11,11 +11,13 @@ public interface IEventManagerService
         DateTime startDate,
         DateTime endDate,
         long categoryId,
-        long venueId);
+        long venueId,
+        CancellationToken cancellationToken);
 
     Task<EventEntity> UpdateEventAsync(
         long organizerId,
         long eventId,
+        CancellationToken cancellationToken,
         string? title = null,
         string? description = null,
         DateTime? startDate = null,
@@ -23,7 +25,7 @@ public interface IEventManagerService
         long? categoryId = null,
         long? venueId = null);
 
-    Task<bool> CanEditEventAsync(long organizerId, long eventId);
+    Task<bool> CanEditEventAsync(long organizerId, long eventId, CancellationToken cancellationToken);
 
-    Task<bool> IsAdminAsync(long userId);
+    Task<bool> IsAdminAsync(long userId, CancellationToken cancellationToken);
 }

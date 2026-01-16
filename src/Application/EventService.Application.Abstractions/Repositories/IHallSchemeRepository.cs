@@ -4,15 +4,15 @@ namespace EventService.Application.Abstractions.Repositories;
 
 public interface IHallSchemeRepository
 {
-    Task<HallScheme?> GetByIdAsync(long id);
+    Task<HallScheme?> GetByIdAsync(long id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<HallScheme>> GetAllAsync();
+    IAsyncEnumerable<HallScheme> GetAllAsync(CancellationToken cancellationToken);
 
-    Task AddAsync(HallScheme entity);
+    Task AddAsync(HallScheme entity, CancellationToken cancellationToken);
 
-    Task UpdateAsync(HallScheme entity);
+    Task UpdateAsync(HallScheme entity, CancellationToken cancellationToken);
 
-    Task DeleteAsync(long id);
+    Task DeleteAsync(long id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<HallScheme>> GetByVenueAsync(long venueId);
+    IAsyncEnumerable<HallScheme> GetByVenueAsync(long venueId, CancellationToken cancellationToken);
 }

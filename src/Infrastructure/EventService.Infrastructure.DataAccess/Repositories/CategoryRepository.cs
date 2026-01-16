@@ -1,39 +1,41 @@
 using EventService.Application.Abstractions.Repositories;
 using EventService.Application.Models.Categories;
 using EventService.Application.Models.EventEntities;
+using EventService.Infrastructure.DataAccess.DataBase.Options;
+using Microsoft.Extensions.Options;
 using Npgsql;
-using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 
 namespace EventService.Infrastructure.DataAccess.Repositories;
 
 public class CategoryRepository : ICategoryRepository
 {
-    private readonly string _connectionString;
+    private readonly NpgsqlDataSource _dataSource;
     private readonly IEventRepository _eventRepository;
 
-    public CategoryRepository(string connectionString, IEventRepository eventRepository)
+    public CategoryRepository(IOptions<DatabaseOptions> options, IEventRepository eventRepository)
     {
-        _connectionString = connectionString;
+        var builder = new NpgsqlDataSourceBuilder(options.Value.GetConnectionString());
+        _dataSource = builder.Build();
         _eventRepository = eventRepository;
     }
 
-    public async Task<Category?> GetByIdAsync(long id)
+    public async Task<Category?> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
-        await using var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
+        const string sql = "SELECT id, name FROM categories WHERE id = @id";
 
-        await using var cmd = new NpgsqlCommand(
-            "SELECT id, name FROM categories WHERE id = @id", conn);
+        await using NpgsqlConnection conn = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("id", id);
 
-        await using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync();
-        if (!await reader.ReadAsync())
+        await using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
             return null;
 
         long categoryId = reader.GetInt64(0);
         string name = reader.GetString(1);
 
-        IReadOnlyList<EventEntity> events = await _eventRepository.GetByCategoryAsync(categoryId);
+        IReadOnlyList<EventEntity> events = await _eventRepository.GetByCategoryAsync(categoryId, cancellationToken);
 
         return new Category(
             Id: categoryId,
@@ -41,91 +43,82 @@ public class CategoryRepository : ICategoryRepository
             Events: events);
     }
 
-    public async Task<IReadOnlyList<Category>> GetAllAsync()
+    public async IAsyncEnumerable<Category> GetAllAsync([EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var result = new Collection<Category>();
+        const string sql = "SELECT id, name FROM categories";
 
-        await using var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
+        await using NpgsqlConnection conn = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        await using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
-        await using var cmd = new NpgsqlCommand("SELECT id, name FROM categories", conn);
-
-        await using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
+        while (await reader.ReadAsync(cancellationToken))
         {
             long categoryId = reader.GetInt64(0);
             string name = reader.GetString(1);
 
-            IReadOnlyList<EventEntity> events = await _eventRepository.GetByCategoryAsync(categoryId);
+            IReadOnlyList<EventEntity> events =
+                await _eventRepository.GetByCategoryAsync(categoryId, cancellationToken);
 
-            result.Add(new Category(
+            yield return new Category(
                 Id: categoryId,
                 Name: name,
-                Events: events));
+                Events: events);
         }
-
-        return result;
     }
 
-    public async Task AddAsync(Category entity)
+    public async Task AddAsync(Category entity, CancellationToken cancellationToken = default)
     {
-        await using var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
+        const string sql = "INSERT INTO categories (name) VALUES (@name) RETURNING id";
 
-        await using var cmd = new NpgsqlCommand(
-            "INSERT INTO categories (name) VALUES (@name) RETURNING id", conn);
+        await using NpgsqlConnection conn = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("name", entity.Name);
 
-        object? result = await cmd.ExecuteScalarAsync();
-
+        object? result = await cmd.ExecuteScalarAsync(cancellationToken);
         if (result == null)
-            throw new ArgumentException($"Could not insert category with id {entity.Id}");
+            throw new InvalidOperationException("Failed to insert category");
 
         long id = (long)result;
-
         typeof(Category).GetProperty("Id")?.SetValue(entity, id);
     }
 
-    public async Task UpdateAsync(Category entity)
+    public async Task UpdateAsync(Category entity, CancellationToken cancellationToken = default)
     {
-        await using var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
+        const string sql = "UPDATE categories SET name = @name WHERE id = @id";
 
-        await using var cmd = new NpgsqlCommand(
-            "UPDATE categories SET name = @name WHERE id = @id", conn);
+        await using NpgsqlConnection conn = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("id", entity.Id);
         cmd.Parameters.AddWithValue("name", entity.Name);
 
-        await cmd.ExecuteNonQueryAsync();
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(long id)
+    public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
-        await using var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
+        const string sql = "DELETE FROM categories WHERE id = @id";
 
-        await using var cmd = new NpgsqlCommand("DELETE FROM categories WHERE id = @id", conn);
+        await using NpgsqlConnection conn = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("id", id);
 
-        await cmd.ExecuteNonQueryAsync();
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    public async Task<Category?> GetByNameAsync(string name)
+    public async Task<Category?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
     {
-        await using var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
+        const string sql = "SELECT id, name FROM categories WHERE name = @name";
 
-        await using var cmd = new NpgsqlCommand(
-            "SELECT id, name FROM categories WHERE name = @name", conn);
+        await using NpgsqlConnection conn = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("name", name);
 
-        await using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync();
-        if (!await reader.ReadAsync())
+        await using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
             return null;
 
         long categoryId = reader.GetInt64(0);
-
-        IReadOnlyList<EventEntity> events = await _eventRepository.GetByCategoryAsync(categoryId);
+        IReadOnlyList<EventEntity> events = await _eventRepository.GetByCategoryAsync(categoryId, cancellationToken);
 
         return new Category(
             Id: categoryId,

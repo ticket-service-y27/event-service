@@ -25,7 +25,8 @@ public class EventManagerServiceGrpc : EventManagerGrpcService.EventManagerGrpcS
                 startDate: request.StartDate.ToDateTime(),
                 endDate: request.EndDate.ToDateTime(),
                 categoryId: request.CategoryId,
-                venueId: request.VenueId);
+                venueId: request.VenueId,
+                cancellationToken: context.CancellationToken);
 
             return Map(created);
         }
@@ -42,6 +43,7 @@ public class EventManagerServiceGrpc : EventManagerGrpcService.EventManagerGrpcS
             EventEntity updated = await _eventManagerService.UpdateEventAsync(
                 organizerId: request.OrganizerId,
                 eventId: request.EventId,
+                cancellationToken: context.CancellationToken,
                 title: string.IsNullOrWhiteSpace(request.Title) ? null : request.Title,
                 description: string.IsNullOrWhiteSpace(request.Description) ? null : request.Description,
                 startDate: request.StartDate != null && request.StartDate.Seconds != 0 ? request.StartDate.ToDateTime() : null,
@@ -66,7 +68,8 @@ public class EventManagerServiceGrpc : EventManagerGrpcService.EventManagerGrpcS
     }
 
     private static EventResponse Map(EventEntity e)
-        => new EventResponse
+    {
+        return new EventResponse
         {
             Id = e.Id,
             Title = e.Title,
@@ -76,4 +79,5 @@ public class EventManagerServiceGrpc : EventManagerGrpcService.EventManagerGrpcS
             CategoryId = e.CategoryId,
             VenueId = e.VenueId,
         };
+    }
 }

@@ -4,15 +4,15 @@ namespace EventService.Application.Abstractions.Repositories;
 
 public interface ICategoryRepository
 {
-    Task<Category?> GetByIdAsync(long id);
+    Task<Category?> GetByIdAsync(long id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<Category>> GetAllAsync();
+    IAsyncEnumerable<Category> GetAllAsync(CancellationToken cancellationToken);
 
-    Task AddAsync(Category entity);
+    Task AddAsync(Category entity, CancellationToken cancellationToken);
 
-    Task UpdateAsync(Category entity);
+    Task UpdateAsync(Category entity, CancellationToken cancellationToken);
 
-    Task DeleteAsync(long id);
+    Task DeleteAsync(long id, CancellationToken cancellationToken);
 
-    Task<Category?> GetByNameAsync(string name);
+    Task<Category?> GetByNameAsync(string name, CancellationToken cancellationToken);
 }

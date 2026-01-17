@@ -28,4 +28,6 @@ public interface IEventManagerService
     Task<bool> CanEditEventAsync(long organizerId, long eventId, CancellationToken cancellationToken);
 
     Task<bool> IsAdminAsync(long userId, CancellationToken cancellationToken);
+
+    IAsyncEnumerable<EventEntity> GetAllEventsAsync(CancellationToken cancellationToken);
 }

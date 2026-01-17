@@ -1,6 +1,6 @@
 name: csms-event-service
 
-services:
+services:        
   event_postgres:
     image: postgres:16
     container_name: event-postgres

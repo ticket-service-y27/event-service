@@ -67,6 +67,14 @@ public class EventManagerServiceGrpc : EventManagerGrpcService.EventManagerGrpcS
         }
     }
 
+    public override async Task GetAllEvents(GetAllEventsRequest request, IServerStreamWriter<EventResponse> responseStream, ServerCallContext context)
+    {
+        await foreach (EventEntity ev in _eventManagerService.GetAllEventsAsync(context.CancellationToken))
+        {
+            await responseStream.WriteAsync(Map(ev));
+        }
+    }
+
     private static EventResponse Map(EventEntity e)
     {
         return new EventResponse

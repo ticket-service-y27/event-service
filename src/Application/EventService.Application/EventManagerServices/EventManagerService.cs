@@ -8,6 +8,7 @@ using EventService.Application.Models.Events;
 using EventService.Application.Models.Organizers;
 using EventService.Application.Models.Venues;
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 using System.Transactions;
 
 namespace EventService.Application.EventManagerServices;
@@ -198,5 +199,13 @@ public class EventManagerService : IEventManagerService
     public Task<bool> IsAdminAsync(long userId, CancellationToken cancellationToken)
     {
         throw new NotImplementedException("Метод IsAdminAsync еще не реализован");
+    }
+
+    public async IAsyncEnumerable<EventEntity> GetAllEventsAsync([EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        await foreach (EventEntity ev in _eventRepository.GetAllAsync(cancellationToken))
+        {
+            yield return ev;
+        }
     }
 }

@@ -7,7 +7,10 @@ import "google/protobuf/timestamp.proto";
 service EventManagerGrpcService {
   rpc CreateEvent(CreateEventRequest) returns (EventResponse);
   rpc UpdateEvent(UpdateEventRequest) returns (EventResponse);
+  rpc GetAllEvents(GetAllEventsRequest) returns (stream EventResponse);
 }
+
+message GetAllEventsRequest {}
 
 message CreateEventRequest {
   int64 organizer_id = 1;

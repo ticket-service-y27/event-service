@@ -7,8 +7,8 @@ service SeatValidationGrpcService {
   rpc IsSeatAvailable(IsSeatAvailableRequest) returns (SeatAvailableResponse);
   rpc GetSeatStatus(GetSeatStatusRequest) returns (SeatStatusResponse);
 
-  rpc BookSeats(BookSeatsRequest) returns (BookSeatsResponse);       // Бронирование
-  rpc ReturnSeats(ReturnSeatsRequest) returns (ReturnSeatsResponse); // Возврат билетов
+  rpc BookSeats(BookSeatsRequest) returns (BookSeatsResponse);
+  rpc ReturnSeats(ReturnSeatsRequest) returns (ReturnSeatsResponse);
 }
 
 message SeatExistsRequest {

@@ -1,6 +1,6 @@
 name: csms-event-service
 
-services:        
+services:
   event_postgres:
     image: postgres:16
     container_name: event-postgres
@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: secret
       POSTGRES_DB: event_db
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - event_pgdata:/var/lib/postgresql/data
     restart: unless-stopped
@@ -18,6 +18,7 @@ services:
 
   zookeeper:
     image: wurstmeister/zookeeper:latest
+    platform: linux/amd64
     restart: unless-stopped
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
@@ -32,11 +33,11 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-      KAFKA_LISTENERS: EXTERNAL://:9092,INTERNAL://:9094
-      KAFKA_ADVERTISED_LISTENERS: EXTERNAL://127.0.0.1:9092,INTERNAL://kafka:9094
+      KAFKA_LISTENERS: EXTERNAL://:9093,INTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: EXTERNAL://127.0.0.1:9093,INTERNAL://kafka:9094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
       ALLOW_PLAINTEXT_LISTENER: yes
-      KAFKA_CREATE_TOPICS: >
+      KAFKA_CREATE_TOPICS:
         event_created:1:1,
         seat_booked:1:1,
         venue_created:1:1
@@ -47,7 +48,7 @@ services:
     volumes:
       - csms-kafka-data:/kafka-data
     ports:
-      - '9092:9092'
+      - '9093:9094'
   
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -57,26 +58,25 @@ services:
     networks:
       - csms-event-service-network
     ports:
-      - "8003:8080"
+      - "8004:8080"
     volumes:
-      - ./schemas:/schemas
+      - ../Presentation/EventService.Presentation.Kafka/Protos:/schemas
     environment:
       kafka.clusters.0.name: kafka
       kafka.clusters.0.bootstrapServers: kafka:9094
       kafka.clusters.0.defaultKeySerde: ProtobufFile
       kafka.clusters.0.defaultValueSerde: ProtobufFile
-
       kafka.clusters.0.serde.0.name: ProtobufFile
       kafka.clusters.0.serde.0.properties.protobufFilesDir: /schemas/
 
-      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.event_created: analytics.EventCreatedKey
-      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.event_created: analytics.EventCreatedValue
-      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.seat_booked: analytics.SeatsBookedKey
-      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.seat_booked: analytics.SeatsBookedValue
-      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.venue_created: analytics.VenueCreatedKey
-      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.venue_created: analytics.VenueCreatedValue
-      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.seat_returned: analytics.SeatsReturnedKey
-      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.seat_returned: analytics.SeatsReturnedValue
+      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.event_created: EventCreatedKey
+      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.event_created: EventCreatedValue
+      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.seat_booked: SeatsBookedKey
+      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.seat_booked: SeatsBookedValue
+      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.venue_created: VenueCreatedKey
+      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.venue_created: VenueCreatedValue
+      kafka.clusters.0.serde.0.properties.protobufMessageNameForKeyByTopic.seat_returned: SeatsReturnedKey
+      kafka.clusters.0.serde.0.properties.protobufMessageNameByTopic.seat_returned: SeatsReturnedValue
 
 networks:
   csms-event-service-network:

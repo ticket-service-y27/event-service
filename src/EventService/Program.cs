@@ -4,9 +4,15 @@ using EventService.Presentation.Grpc.Extensions;
 using EventService.Presentation.Kafka.Extensions;
 using FluentMigrator.Runner;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Configure(builder.Configuration.GetSection("Kestrel"));
+});
 
 builder.Services.AddApplicationServices();
 

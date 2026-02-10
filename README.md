@@ -1,17 +1,17 @@
 # Event Service
 
+
 ## Технологии
 
 - **Язык программирования:** C#
 - **Платформа:** .NET 9
 - **Backend:** ASP.NET Core
+- **API Gateway:** REST (HTTP Gateway)
 - **Межсервисное взаимодействие:** gRPC (Protocol Buffers)
-- **Асинхронные события:** Apache Kafka
-- **ORM:** Entity Framework Core
-- **База данных:** PostgreSQL
-- **Архитектура:** Microservices, Event-Driven Architecture
+- **Асинхронное взаимодействие:** Apache Kafka
+- **Архитектура:** Microservices, Hexagonal Architecture (Ports & Adapters), Event-Driven Architecture
 - **Контейнеризация:** Docker
-- **Инструменты:** Git, Swagger/OpenAPI, Postman
+- **Инструменты:** Git, Swagger / OpenAPI, Postman
 
 ---
 
